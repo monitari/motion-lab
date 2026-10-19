@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Motion Lab</title>
+  <meta name="description" content="브라우저 하나로 만들 수 있는 움직임을 모아둔 곳. 홀로 카드, 리퀴드 글래스, 물리 시뮬레이션, WebGL 셰이더. 라이브러리 없이 HTML, CSS, JS만 썼습니다.">
+  <meta property="og:title" content="Motion Lab">
+  <meta property="og:description" content="Interactive web animation index. Holo cards, liquid glass, physics, shaders.">
+  <meta property="og:image" content="https://monitari.github.io/motion-lab/og.png">
+  <meta property="og:url" content="https://monitari.github.io/motion-lab/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23141414'/%3E%3Ccircle cx='26' cy='32' r='12' fill='%23ff4a1c'/%3E%3Ccircle cx='42' cy='32' r='12' fill='none' stroke='%23efede8' stroke-width='4'/%3E%3C/svg%3E">
+  <script>
+    // 테마를 첫 페인트 전에 결정해서 깜빡임 방지
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('ml-theme'); } catch (e) {}
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600;700&family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&family=Space+Grotesk:wght@400;500;600;700&family=Monoton&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="mast">
+    <a class="logo" href="#top" aria-label="Motion Lab 처음으로"><span class="logo-dot"></span>Motion Lab</a>
+    <nav class="mast-nav">
+      <a href="#index">Index</a>
+      <a href="#colophon">Colophon</a>
+    </nav>
+    <span class="mast-meta"><span data-count>0</span> pieces · Rev. 2026.10</span>
+    <button class="tool-btn tilt-btn" id="tiltBtn" type="button" hidden title="폰을 기울여 데모를 움직이기">Tilt</button>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="테마 전환"><span></span></button>
+  </header>
+
+  <section class="intro" id="top">
+    <div class="intro-text">
+      <h1 class="intro-title"><span class="ln"><span>Motion</span></span><span class="ln"><span>Lab<sup data-count>0</sup></span></span></h1>
+      <p class="intro-lede">
+        브라우저 하나로 만들 수 있는 움직임을 모아두는 곳입니다.
+        거의 다 마우스에 반응해요. 목록에서 바로 만져봐도 되고, 제목을 누르면 크게 열리면서 소스도 볼 수 있습니다.
+      </p>
+      <dl class="facts">
+        <div><dt>Pieces</dt><dd><span data-count>0</span>개, <span data-cats>0</span>개 분류</dd></div>
+        <div><dt>Libraries</dt><dd>없음. 빌드 과정도 없음</dd></div>
+        <div><dt>Made with</dt><dd>Canvas 2D, WebGL, SVG 필터, CSS</dd></div>
+        <div><dt>Best on</dt><dd>데스크톱 Chrome, 마우스</dd></div>
+      </dl>
+    </div>
+    <figure class="intro-fig">
+      <div class="intro-stage" id="heroStage"></div>
+      <figcaption class="intro-cap">
+        <span class="cap-fig">Fig. <span id="heroNo">00</span></span>
+        <span class="cap-title" id="heroTitle"></span>
+        <span class="cap-ctl" id="heroCtl"></span>
+        <button class="cap-btn" id="heroNext" type="button">다른 것</button>
+        <button class="cap-btn" id="heroOpen" type="button">크게 보기 ↗</button>
+      </figcaption>
+    </figure>
+  </section>
+
+  <nav class="filters" id="index" aria-label="분류">
+    <div class="filters-in">
+      <div class="chips" id="chips"></div>
+      <div class="tools">
+        <label class="search"><span class="sr">검색</span><input id="q" type="search" placeholder="검색  /" autocomplete="off"></label>
+        <button class="tool-btn" id="random" type="button" title="아무거나 열기">Random ↗</button>
+        <button class="tool-btn" id="mode" type="button"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="sections"></main>
+
+  <footer class="colophon" id="colophon">
+    <div class="colo-grid">
+      <div class="colo-big">Motion Lab</div>
+      <div>
+        <h4>About</h4>
+        <p>목록의 미리보기는 화면에 보이는 동안에만 돌아가고, 벗어나면 정리됩니다. 아무도 만지지 않으면 각 데모는 가짜 커서로 스스로 움직여요. 느리면 상단의 Preview를 Hover로 바꾸세요.</p>
+      </div>
+      <div>
+        <h4>참고한 것들</h4>
+        <ul>
+          <li><a href="https://github.com/simeydotme/pokemon-cards-css" target="_blank" rel="noopener">simeydotme/pokemon-cards-css</a></li>
+          <li><a href="https://github.com/shuding/liquid-glass" target="_blank" rel="noopener">shuding/liquid-glass</a></li>
+          <li><a href="https://iquilezles.org/articles/" target="_blank" rel="noopener">Inigo Quilez, articles</a></li>
+          <li><a href="https://thecodingtrain.com/" target="_blank" rel="noopener">The Coding Train</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Keys</h4>
+        <ul class="keys">
+          <li><kbd>←</kbd><kbd>→</kbd> 이전, 다음</li>
+          <li><kbd>R</kbd> 다시 시작</li>
+          <li><kbd>S</kbd> 소스 보기</li>
+          <li><kbd>T</kbd> 값 조절</li>
+          <li><kbd>M</kbd> 소리 켜고 끄기</li>
+          <li><kbd>F</kbd> 전체 화면</li>
+          <li><kbd>/</kbd> 검색</li>
+        </ul>
+      </div>
+    </div>
+    <p class="colo-note">HTML, CSS, JavaScript. 2026.</p>
+  </footer>
+
+  <div class="viewer" id="viewer" hidden>
+    <div class="v-top">
+      <div class="v-id"><span class="v-no" id="vno"></span><span class="v-cat" id="vcat"></span></div>
+      <h2 class="v-title" id="vtitle"></h2>
+      <div class="v-tools">
+        <span class="v-fps" id="vfps">-- fps</span>
+        <button class="v-btn" id="vrestart" type="button" title="다시 시작 (R)">Restart</button>
+        <button class="v-btn" id="vsound" type="button" title="소리 (M)" hidden>Sound</button>
+        <button class="v-btn" id="vtweak" type="button" title="값 조절 (T)">Tweak</button>
+        <button class="v-btn" id="vsrc" type="button" title="소스 보기 (S)">Source</button>
+        <button class="v-btn" id="vfull" type="button" title="전체 화면 (F)">Fullscreen</button>
+        <button class="v-btn v-close" id="vclose" type="button" title="닫기 (Esc)" aria-label="닫기">✕</button>
+      </div>
+    </div>
+    <div class="v-body">
+      <div class="v-stage" id="vstage"></div>
+      <div class="v-hint" id="vhint" aria-hidden="true"><span class="v-hint-ico" id="vhintIco"></span><span class="v-hint-txt" id="vhintTxt"></span></div>
+      <div class="v-toast" id="vtoast" role="status" aria-live="polite"></div>
+      <div class="v-tweak" id="vtweakPanel" hidden>
+        <div class="v-tweak-head"><span>Tweak</span><button class="v-btn" id="vreset" type="button">Reset</button></div>
+        <div class="v-tweak-rows" id="vtweakRows"></div>
+      </div>
+      <aside class="v-src" id="vsrcPanel" hidden>
+        <div class="v-src-head"><span id="vsrcLabel">source</span><button class="v-btn" id="vcopy" type="button">Copy</button></div>
+        <pre><code id="vcode"></code></pre>
+      </aside>
+    </div>
+    <div class="v-bottom">
+      <button class="v-arrow" id="vprev" type="button" aria-label="이전">←</button>
+      <p class="v-desc" id="vdesc"></p>
+      <ul class="v-ctl" id="vctl"></ul>
+      <button class="v-arrow" id="vnext" type="button" aria-label="다음">→</button>
+    </div>
+  </div>
+
+  <script src="js/core.js"></script>
+  <script src="js/demos/cards.js"></script>
+  <script src="js/demos/glass.js"></script>
+  <script src="js/demos/text.js"></script>
+  <script src="js/demos/canvas.js"></script>
+  <script src="js/demos/physics.js"></script>
+  <script src="js/demos/shaders.js"></script>
+  <script src="js/demos/ui.js"></script>
+  <script src="js/demos/extra-a.js"></script>
+  <script src="js/demos/extra-b.js"></script>
+  <script src="js/demos/extra-c.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

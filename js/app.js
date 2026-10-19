@@ -14,6 +14,8 @@
   demos.forEach((d, i) => (d.no = pad(i + 1, 3)));
   const catOf = (id) => categories.find((c) => c.id === id);
   const byId = (id) => demos.find((d) => d.id === id);
+  const STARTERS = new Set(['liquid-lens', 'holo-rainbow', 'cloth', 'particle-text', 'lizard', 'flow-field']);
+  const coarsePointer = matchMedia('(pointer: coarse)');
 
   document.querySelectorAll('[data-count]').forEach((n) => (n.textContent = demos.length));
   document.querySelectorAll('[data-cats]').forEach((n) => (n.textContent = categories.length));
@@ -57,11 +59,11 @@
   const root = $('#sections');
   const chips = $('#chips');
   const tiles = [];
-  chips.insertAdjacentHTML('beforeend', `<a class="chip active" href="#index" data-cat="all">All<sup>${demos.length}</sup></a>`);
+  chips.insertAdjacentHTML('beforeend', `<button class="chip active" type="button" data-cat="all" aria-pressed="true">전체<sup>${demos.length}</sup></button><button class="chip" type="button" data-cat="featured" aria-pressed="false">처음이라면<sup>${STARTERS.size}</sup></button>`);
   categories.forEach((c, ci) => {
     const list = demos.filter((d) => d.cat === c.id);
     if (!list.length) return;
-    chips.insertAdjacentHTML('beforeend', `<a class="chip" href="#sec-${c.id}" data-cat="${c.id}">${c.label}<sup>${list.length}</sup></a>`);
+    chips.insertAdjacentHTML('beforeend', `<button class="chip" type="button" data-cat="${c.id}" aria-pressed="false">${c.label}<sup>${list.length}</sup></button>`);
     const sec = document.createElement('section');
     sec.className = 'sec';
     sec.id = 'sec-' + c.id;
@@ -88,24 +90,27 @@
       const cap = t.querySelector('.tile-cap');
       cap.addEventListener('click', () => open(d, stage));
       cap.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), open(d, stage)));
-      t.addEventListener('pointerenter', () => hoverMode && mountTile(t));
+      t.addEventListener('pointerenter', (e) => hoverMode && e.pointerType === 'mouse' && mountTile(t));
       t.addEventListener('pointerleave', () => hoverMode && unmountTile(t));
+      stage.addEventListener('click', (e) => {
+        if (coarsePointer.matches && hoverMode && !e.target.closest('.tile-open')) open(d, stage);
+      });
       grid.appendChild(t);
       tiles.push(t);
     });
     root.appendChild(sec);
   });
-  root.insertAdjacentHTML('beforeend', '<p class="empty" hidden>맞는 게 없어요.</p>');
+  root.insertAdjacentHTML('beforeend', '<div class="empty" hidden><p>조건에 맞는 작품이 없어요.</p><p>검색어를 줄이거나 다른 분류를 골라보세요.</p><button class="cap-btn" id="emptyReset" type="button">전체 작품 보기 ↗</button></div>');
   const tileOf = (d) => tiles.find((t) => t._demo === d);
 
   /* ---------- live previews ---------- */
   const live = new Map();
   let paused = false;
-  let hoverMode = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let hoverMode = RM.matches || coarsePointer.matches;
   try { const m = localStorage.getItem('ml-mode'); if (m) hoverMode = m === 'hover'; } catch (_) {}
 
   function mountTile(t) {
-    if (live.has(t) || paused) return;
+    if (live.has(t) || paused || t.hidden || document.hidden) return;
     const host = t.querySelector('.tile-stage');
     const inner = document.createElement('div');
     inner.className = 'stage-inner';
@@ -129,7 +134,12 @@
   const unmountAll = () => [...live.keys()].forEach(unmountTile);
 
   const modeBtn = $('#mode');
-  const syncMode = () => { modeBtn.innerHTML = `Preview <b>${hoverMode ? 'Hover' : 'Live'}</b>`; modeBtn.title = hoverMode ? '마우스를 올린 것만 재생' : '보이는 것 전부 재생'; };
+  const syncMode = () => {
+    modeBtn.innerHTML = `자동 재생 <b>${hoverMode ? '끔' : '켬'}</b>`;
+    modeBtn.setAttribute('aria-pressed', String(!hoverMode));
+    modeBtn.title = hoverMode ? '마우스를 올리거나 작품을 눌러 체험' : '화면에 보이는 작품 자동 재생';
+    root.classList.toggle('manual-preview', hoverMode);
+  };
   modeBtn.addEventListener('click', () => {
     hoverMode = !hoverMode;
     try { localStorage.setItem('ml-mode', hoverMode ? 'hover' : 'live'); } catch (_) {}
@@ -141,9 +151,9 @@
   observeAll();
 
   /* ---------- hero figure ---------- */
-  const FEATURED = ['liquid-lens', 'holo-rainbow', 'cloth', 'particle-text', 'glass-shatter', 'lizard', 'metaballs', 'flow-field', 'fluted-glass', 'dot-globe'].map(byId).filter(Boolean);
+  const FEATURED = ['liquid-lens', 'watercolor-bloom', 'unwoven-poster', 'chladni-plate', 'holo-rainbow', 'cloth', 'particle-text', 'glass-shatter', 'lizard', 'metaballs', 'flow-field', 'fluted-glass', 'dot-globe'].map(byId).filter(Boolean);
   const heroStage = $('#heroStage');
-  let heroI = Math.floor(Math.random() * FEATURED.length), heroScope = null, heroInner = null, heroVisible = true;
+  let heroI = 0, heroScope = null, heroInner = null, heroVisible = true;
   // 동작 줄이기 설정이면 히어로는 정지 이미지로 두고, 누를 때만 재생
   let heroAllowed = !matchMedia('(prefers-reduced-motion: reduce)').matches;
   const heroPoster = document.createElement('img');
@@ -156,7 +166,7 @@
   const heroUnmount = () => { heroStage.classList.remove('is-live'); if (heroScope) { heroScope.dispose(); heroInner.remove(); heroScope = heroInner = null; } };
   const heroMount = () => {
     heroUnmount();
-    if (paused || !heroVisible || !heroAllowed) return;
+    if (paused || !heroVisible || !heroAllowed || document.hidden) return;
     const d = FEATURED[heroI];
     heroInner = document.createElement('div');
     heroInner.className = 'stage-inner';
@@ -186,24 +196,37 @@
   });
   $('#heroOpen').addEventListener('click', () => open(FEATURED[heroI], heroStage));
 
-  /* ---------- search ---------- */
+  /* ---------- category + search: one consistent result set ---------- */
   const q = $('#q');
-  q.addEventListener('input', () => {
+  let selectedCat = 'all';
+  const matchesCategory = (d, cat) => cat === 'all' || (cat === 'featured' ? STARTERS.has(d.id) : d.cat === cat);
+  function applyFilters() {
     const v = q.value.trim().toLowerCase();
-    let any = false;
+    let total = 0;
     document.querySelectorAll('.sec').forEach((sec) => {
       let n = 0;
       sec.querySelectorAll('.tile').forEach((t) => {
-        const hit = !v || t._search.includes(v);
+        const hit = (!v || t._search.includes(v)) && matchesCategory(t._demo, selectedCat);
         t.hidden = !hit;
         if (hit) n++; else unmountTile(t);
       });
       sec.hidden = n === 0;
-      any = any || n > 0;
+      sec.querySelector('.sec-count').textContent = pad(n);
+      total += n;
     });
-    $('.empty').hidden = any;
+    chipEls.forEach((c) => {
+      const count = tiles.filter((t) => (!v || t._search.includes(v)) && matchesCategory(t._demo, c.dataset.cat)).length;
+      c.querySelector('sup').textContent = count;
+    });
+    $('.empty').hidden = total > 0;
+    const label = selectedCat === 'all' ? '전체 작품' : selectedCat === 'featured' ? '처음 보면 좋은 작품' : catOf(selectedCat).label;
+    $('#resultCount').textContent = `${label} · ${total}개${v ? ` · “${q.value.trim()}” 검색 결과` : ''}`;
+    $('#clearFilters').hidden = selectedCat === 'all' && !v;
+    $('#random').disabled = total === 0;
+    setChip(selectedCat);
     observeAll();
-  });
+  }
+  q.addEventListener('input', applyFilters);
 
   /* ---------- active chip ---------- */
   const chipEls = [...chips.querySelectorAll('.chip')];
@@ -217,7 +240,26 @@
     chipInd.style.width = a.offsetWidth + 'px';
     chipInd.style.transform = `translateX(${a.offsetLeft}px)`;
   };
-  const setChip = (id) => { chipEls.forEach((c) => c.classList.toggle('active', c.dataset.cat === id)); moveInd(); };
+  const setChip = (id) => {
+    chipEls.forEach((c) => {
+      c.classList.toggle('active', c.dataset.cat === id);
+      c.setAttribute('aria-pressed', String(c.dataset.cat === id));
+    });
+    moveInd();
+  };
+  chips.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-cat]');
+    if (!chip) return;
+    selectedCat = chip.dataset.cat;
+    applyFilters();
+    $('#index').scrollIntoView({ behavior: RM.matches ? 'instant' : 'smooth', block: 'start' });
+  });
+  function resetFilters() {
+    selectedCat = 'all'; q.value = ''; applyFilters(); q.focus({ preventScroll: true });
+  }
+  $('#clearFilters').addEventListener('click', resetFilters);
+  $('#emptyReset').addEventListener('click', resetFilters);
+  applyFilters();
   addEventListener('resize', moveInd);
   document.fonts && document.fonts.ready.then(moveInd);
   requestAnimationFrame(moveInd);
@@ -235,17 +277,6 @@
     }, { rootMargin: '0px 0px -8% 0px' });
     document.querySelectorAll('.tile, .sec-head').forEach((n) => { n.classList.add('reveal'); rev.observe(n); });
   }
-  const secIO = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (!e.isIntersecting) return;
-      const id = e.target.id.replace('sec-', '');
-      setChip(id);
-      const a = chips.querySelector(`[data-cat="${id}"]`);
-      a && chips.scrollTo({ left: a.offsetLeft - 60, behavior: 'smooth' });
-    });
-  }, { rootMargin: '-40% 0px -55% 0px' });
-  document.querySelectorAll('.sec').forEach((s) => secIO.observe(s));
-  new IntersectionObserver(([e]) => e.isIntersecting && setChip('all')).observe($('.intro'));
 
   /* ---------- source highlighting ---------- */
   const KW = new Set('const let var function return if else for while do new of in true false null undefined this break continue switch case default try catch typeof class extends float int bool void vec2 vec3 vec4 mat2 mat3 uniform precision highp mediump'.split(' '));
@@ -287,8 +318,13 @@
   const vstage = $('#vstage');
   const srcPanel = $('#vsrcPanel');
   let cur = null, curScope = null, curInner = null, lastFocus = null, srcOpen = false;
+  const historyOwner = `motion-lab-${Date.now()}-${Math.random()}`;
+  const background = [...document.querySelectorAll('.mast, .intro, .filters, #sections, .colophon')];
+  let listScroll = 0, historyClosing = false;
 
   function mountCurrent() {
+    clearTimeout(restartTimer);
+    if (!cur) return;
     if (curScope) { curScope.dispose(); curInner.remove(); }
     curInner = document.createElement('div');
     curInner.className = 'stage-inner';
@@ -359,6 +395,7 @@
     tweakBtn.disabled = !pr;
     tweakPanel.hidden = !(pr && tweakOpen);
     tweakBtn.classList.toggle('on', !!(pr && tweakOpen));
+    tweakBtn.setAttribute('aria-expanded', String(!!(pr && tweakOpen)));
     if (!pr) { tweakRows.innerHTML = ''; return; }
     tweakRows.innerHTML = Object.entries(pr.spec).map(([k, [def, min, max, step, label, restart]]) =>
       `<div class="v-tw${restart ? ' restart' : ''}"><label for="tw-${k}">${esc(label || k)}</label><output id="two-${k}">${fmt(pr.values[k], step)}</output>
@@ -393,11 +430,12 @@
     srcOpen = on;
     srcPanel.hidden = !on;
     $('#vsrc').classList.toggle('on', on);
+    $('#vsrc').setAttribute('aria-expanded', String(on));
     fillSource();
   }
 
   function flip(fromEl, reverse) {
-    if (!fromEl || !vstage.animate) return null;
+    if (RM.matches || !fromEl || !vstage.animate) return null;
     const a = fromEl.getBoundingClientRect(), b = vstage.getBoundingClientRect();
     if (!a.width || !b.width || a.bottom < 0 || a.top > innerHeight) return null;
     const from = `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`;
@@ -407,8 +445,9 @@
 
   function open(d, fromEl, fromHash) {
     if (!d) return;
+    historyClosing = false;
     const first = viewer.hidden;
-    if (first) lastFocus = document.activeElement;
+    if (first) { lastFocus = document.activeElement; listScroll = scrollY; }
     paused = true;
     unmountAll();
     heroUnmount();
@@ -420,6 +459,7 @@
     $('#vdesc').textContent = d.desc;
     $('#vctl').innerHTML = (d.ctl || []).map(([k, v]) => `<li><kbd>${esc(k)}</kbd>${esc(v)}</li>`).join('');
     viewer.hidden = false;
+    background.forEach((el) => { el.inert = true; });
     document.body.style.overflow = 'hidden';
     if (first) {
       viewer.classList.remove('in'); void viewer.offsetWidth; viewer.classList.add('in');
@@ -428,33 +468,43 @@
     mountCurrent();
     fillSource();
     showHint();
-    if (!fromHash) history.replaceState(null, '', '#/' + d.id);
+    if (!fromHash) {
+      if (first) history.pushState({ ...history.state, mlViewer: historyOwner }, '', '#/' + d.id);
+      else history.replaceState(history.state, '', '#/' + d.id);
+    }
+    frames = 0; fpsT = performance.now(); fpsEl.textContent = '-- fps';
     if (first) $('#vclose').focus({ preventScroll: true });
   }
-  function close() {
+  function close(fromHistory = false) {
     if (viewer.hidden) return;
-    const t = cur && tileOf(cur);
-    const target = t ? t.querySelector('.tile-stage') : null;
-    const finish = () => {
-      if (curScope) { curScope.dispose(); curInner.remove(); }
-      curScope = curInner = cur = null;
-      viewer.hidden = true;
-      vstage.getAnimations && vstage.getAnimations().forEach((a) => a.cancel());
-      document.body.style.overflow = '';
-      history.replaceState(null, '', location.pathname + location.search);
-      paused = false;
-      if (!hoverMode) observeAll();
-      if (heroVisible) heroMount();
-      lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true });
-    };
+    if (!fromHistory && history.state && history.state.mlViewer === historyOwner) {
+      if (historyClosing) return;
+      historyClosing = true;
+      history.back();
+      return;
+    }
+    historyClosing = false;
+    clearTimeout(restartTimer); clearTimeout(hintTimer); clearTimeout(toastTimer);
+    hintEl.classList.remove('show'); toastEl.classList.remove('show');
+    if (curScope) { curScope.dispose(); curInner.remove(); }
+    curScope = curInner = cur = null;
+    viewer.hidden = true;
+    vstage.getAnimations && vstage.getAnimations().forEach((a) => a.cancel());
+    background.forEach((el) => { el.inert = false; });
+    document.body.style.overflow = '';
+    if (!fromHistory) history.replaceState(history.state, '', location.pathname + location.search);
+    paused = false;
+    if (!hoverMode) observeAll();
+    if (heroVisible) heroMount();
+    lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true });
+    scrollTo({ top: listScroll, behavior: 'instant' });
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    const anim = flip(target, true);
-    if (anim) { viewer.classList.remove('in'); anim.onfinish = finish; } else finish();
   }
-  const visibleDemos = () => { const l = demos.filter((d) => !tileOf(d).hidden); return l.length ? l : demos; };
+  const visibleDemos = () => demos.filter((d) => !tileOf(d).hidden);
   // 이전/다음: 무대가 옆으로 밀려나고 새 데모가 들어온다
   const step = (k) => {
-    const l = visibleDemos();
+    const results = visibleDemos();
+    const l = results.includes(cur) ? results : demos;
     const next = l[(l.indexOf(cur) + k + l.length) % l.length];
     const vt = transition(k > 0 ? 'next' : 'prev', () => open(next));
     if (!vt && curInner && curInner.animate && !RM.matches) {
@@ -462,7 +512,7 @@
     }
   };
 
-  $('#vclose').addEventListener('click', close);
+  $('#vclose').addEventListener('click', () => close());
   $('#random').addEventListener('click', () => { const l = visibleDemos(); open(l[(Math.random() * l.length) | 0]); });
   $('#vprev').addEventListener('click', () => step(-1));
   $('#vnext').addEventListener('click', () => step(1));
@@ -473,12 +523,21 @@
     if (document.fullscreenElement) document.exitFullscreen();
     else viewer.requestFullscreen && viewer.requestFullscreen().catch(() => {});
   });
-  $('#vcopy').addEventListener('click', (e) => {
-    const btn = e.currentTarget;
-    navigator.clipboard && navigator.clipboard.writeText(sourceOf(cur).code).then(() => {
-      btn.textContent = 'Copied'; setTimeout(() => (btn.textContent = 'Copy'), 1200);
-      toast('소스를 복사했어요');
-    });
+  async function copyText(text, message) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(message);
+    } catch (_) {
+      // 로컬 파일이나 클립보드 권한이 없는 환경에서도 직접 복사할 수 있게 한다.
+      window.prompt('복사할 내용을 선택한 뒤 Ctrl/Cmd+C를 눌러주세요.', text);
+    }
+  }
+  $('#vcopy').addEventListener('click', () => { if (cur) copyText(sourceOf(cur).code, '코드를 복사했어요'); });
+  $('#vshare').addEventListener('click', () => {
+    if (!cur) return;
+    const url = new URL(location.href);
+    url.hash = '/' + cur.id;
+    copyText(url.href, location.protocol === 'file:' ? '로컬 파일 주소를 복사했어요' : '작품 링크를 복사했어요');
   });
   document.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -522,10 +581,16 @@
 
   const fromHash = () => {
     const m = location.hash.match(/^#\/(.+)$/);
-    if (m) open(byId(m[1]), null, true);
-    else if (!viewer.hidden) close();
+    const d = m && byId(m[1]);
+    if (d) { if (viewer.hidden || cur !== d) open(d, null, true); }
+    else if (!viewer.hidden) close(true);
   };
+  window.addEventListener('popstate', fromHash);
   window.addEventListener('hashchange', fromHash);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { unmountAll(); heroUnmount(); }
+    else if (!paused) { if (!hoverMode) observeAll(); if (heroVisible) heroMount(); }
+  });
   fromHash();
 
   window.LabApp = { open, close, tiles, live };

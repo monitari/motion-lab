@@ -80,7 +80,7 @@
     tags: ['mask-image', 'layers', 'mouse'],
     css: `
     .sp{--x:50%;--y:50%;--r:16cqmin;position:absolute;inset:0;overflow:hidden;cursor:none}
-    .sp-l{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 8cqmin;font:800 12cqmin/.95 'Space Grotesk',sans-serif;letter-spacing:-.04em}
+    .sp-l{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 7cqw;font:800 min(16cqmin,12cqw)/.92 'Space Grotesk',sans-serif;letter-spacing:-.045em}
     .sp-a{background:#e9e6df;color:#cfcac0}
     .sp-a small,.sp-b small{font:600 2.4cqmin 'JetBrains Mono',monospace;letter-spacing:.3em;margin-top:4cqmin}
     .sp-a small{color:#9a958c}

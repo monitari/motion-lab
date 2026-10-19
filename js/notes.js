@@ -6,6 +6,7 @@
   Lab.catIntro = {
     cards: '포켓몬 카드의 홀로 효과를 CSS로 옮겨본 것. 그라디언트 몇 장과 blend-mode 조합이 전부입니다.',
     glass: '요즘 자주 보이는 유리 질감. 굴절은 SVG 필터, 흐림은 backdrop-filter, 깨지고 김 서리는 건 캔버스로.',
+    material: '종이에 스며드는 물감, 실로 풀리는 그림. 손끝에 닿을 것 같은 재료를 화면 안에서 만져봅니다.',
     text: '글자를 재료로 쓴 것들.',
     canvas: '규칙 몇 줄에서 나오는 그림. 대부분 Canvas 2D 하나로 그립니다.',
     physics: '스프링, 버렛 적분, 셀룰러 오토마타. 잡고 당겨볼 수 있는 것들.',
@@ -15,6 +16,9 @@
   };
 
   const N = {
+    'watercolor-bloom': ['물감을 찍고 끌면 종이 위로 천천히 번집니다. 반투명한 안료가 겹치며 색이 깊어지고 가장자리에 자국이 남아요. 아래에서 색을 고르고, 값 조절에서 물의 양과 붓 크기를 바꿔보세요.', 'Drag:물감 칠하기|Hold:물감 더하기'],
+    'unwoven-poster': ['포스터가 가느다란 실로 짜여 있습니다. 가로로 잡아당기면 그림이 풀리고, 놓으면 탄성으로 제자리로 돌아와요. 아래 버튼으로 포스터의 색을 바꿉니다.', 'Drag:가로로 풀기|Hover:실 흔들기'],
+    'chladni-plate': ['진동의 마디에 모이는 금빛 모래. 아래에서 진동 모드를 고르고, 판을 누르면 모래를 흩뜨릴 수 있어요. 코사인 정상파를 사용한 시각적 근사이며, 소리는 선택한 모드를 표현한 짧은 음입니다.', 'Click:흩뜨리고 울리기|Move:모래 밀기'],
     'holo-rainbow': ['포켓몬 카드의 레귤러 홀로. 무지개 줄무늬와 사선 패턴 두 장을 exclusion, hue로 겹친 다음 color-dodge로 카드 위에 올렸습니다.', 'Move:기울이기|Click:뒤집기'],
     'holo-cosmos': ['코스모스 홀로. 성운 그라디언트 위에 간격이 다른 점 패턴 두 겹을 깔아서, 기울이면 서로 다른 속도로 미끄러지며 반짝입니다.', 'Move:기울이기|Click:뒤집기'],
     'holo-gold': ['시크릿 레어 금박. 사선 금색 띠 위로 좁은 광택 한 줄이 커서를 따라 지나갑니다. 글리터는 0.4em 간격의 점.', 'Move:기울이기|Click:뒤집기'],
@@ -105,10 +109,21 @@
     'view-transitions': ['같은 view-transition-name을 가진 요소끼리 브라우저가 알아서 모핑합니다. 표지를 누르면 상세 화면으로 커지고, 지원하지 않는 브라우저에서는 FLIP으로 대신해요.', 'Click:열기, 닫기'],
     'scroll-driven': ['animation-timeline: view()와 scroll()로 스크롤 위치에 묶인 애니메이션. 진행 바와 링, 카드 등장, 가로로 흐르는 글자까지 JS 없이 CSS만 씁니다.', 'Scroll:진행'],
     'at-property': ['@property로 타입을 등록한 커스텀 속성은 그라디언트 안에서도 트랜지션이 됩니다. 각도, 색 정지점, 모서리 반경을 각각 애니메이션해요.', 'Hover:변형|Click:색 바꾸기'],
+    // 타이포그래피 묶음
+    'type-cylinder': ['문장을 원통에 감아 돌립니다. 일곱 줄이 조금씩 비틀려 나선처럼 보이고, 뒤쪽 글자는 흐리게 그려 깊이를 냅니다. 크게 열면 문구를 직접 바꿀 수 있어요.', 'Drag:돌리기|Move Y:기울기'],
+    'contour-type': ['같은 단어를 스무 겹 넘게 겹쳐 그리면서 커서 쪽으로 조금씩 밀어 등고선 같은 깊이를 만듭니다. 종이층 모드에서는 층마다 색을 채워요.', 'Move:깊이 방향|Hold:더 깊게'],
+    'chromatic-press': ['시안, 마젠타, 노랑 세 색판을 multiply로 겹친 인쇄. 판을 하나 골라 끌면 어긋나고, 맞추기를 누르면 다시 정렬됩니다.', 'Drag:색판 어긋내기|Click 맞추기:정렬'],
+    'hangul-assembly': ['한글 음절을 유니코드 규칙(0xAC00부터 588, 28 단위)으로 초성, 중성, 종성으로 나눕니다. 좌우로 끌면 분해 정도가 바뀌고, 문구를 바꾸면 그 글자를 분해해요.', 'Drag:분해하기|Click 모드:자동, 분해, 조립'],
+    'text-reflow': ['문단이 커서를 피해 흐릅니다. 줄마다 돌에 가려지지 않은 구간을 다시 계산해 단어를 채우고, 각 단어는 스프링으로 새 자리까지 미끄러져요. 두 번째 돌은 혼자 떠다닙니다.', 'Move:돌 옮기기|Hold:돌 키우기'],
+    'typewriter': ['기계식 타자기. 글자마다 잉크 농도와 기울기가 조금씩 다르고, 리본이 닳은 자리는 비어 보입니다. 줄 끝 여섯 칸 전에 종이 울리고, 한글은 두 칸을 차지해요. 지우개는 없고 백스페이스는 겹쳐 치기만 됩니다.', 'Type:찍기|Enter:줄 바꿈|Backspace:한 칸 뒤로'],
+    'word-clock': ['한글 글자판 시계. 서른 칸 안에서 오전, 오후, 시, 분, 정각, 쯤을 골라 켜서 지금 시간을 문장으로 읽게 합니다. 5분 단위이고, 남는 분은 네 귀퉁이 점으로 보여줘요.', 'Drag:시간 이동|Dbl click:지금으로'],
+    'text-trail': ['커서가 지나간 길을 문장 길이만큼만 기억하고, 그 위에 글자를 접선 방향으로 눕힙니다. 마지막 글자가 늘 커서 바로 뒤에 붙어 따라와요.', 'Move:문장 끌기|Click:다음 문장'],
+    'melting-type': ['글자 아래쪽 절반을 2px 세로 조각으로 잘라, 녹은 길이만큼 늘여 그립니다. 커서의 열을 받은 조각은 흘러내리고, 식으면 천천히 다시 오므라들어요. 떨어진 방울은 바닥에 고입니다.', 'Move:녹이기|Hold:더 뜨겁게|Dbl click:다음 단어'],
+    'ripple-paragraph': ['진짜 DOM 텍스트 위로 물결이 지나갑니다. 굵기는 text-stroke로 그려서 줄바꿈이 흔들리지 않고, 글자는 그대로 선택하고 복사할 수 있어요.', 'Click:물결|Move:가까운 단어 강조'],
     'like-burst': ['누르면 하트가 튀고, 꾹 누르고 있으면 계속 쌓입니다. 숫자는 자리마다 0부터 9까지 세로로 굴러가요.', 'Click:좋아요|Hold:연타'],
   };
 
-  Lab.newIds = new Set(['joker-hand', 'physarum', 'silk-gradient', 'view-transitions', 'scroll-driven', 'at-property']);
+  Lab.newIds = new Set(['text-reflow', 'typewriter', 'word-clock', 'text-trail', 'melting-type', 'ripple-paragraph', 'type-cylinder', 'contour-type', 'chromatic-press', 'hangul-assembly', 'watercolor-bloom', 'unwoven-poster', 'chladni-plate', 'joker-hand', 'physarum', 'silk-gradient', 'view-transitions', 'scroll-driven', 'at-property']);
 
   Lab.demos.forEach((d) => {
     const n = N[d.id];

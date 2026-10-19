@@ -10,6 +10,7 @@
     categories: [
       { id: 'cards',   label: 'Holo Cards',  color: '#ffcf5c' },
       { id: 'glass',   label: 'Glass',       color: '#9fe8ff' },
+      { id: 'material', label: 'Material Studies', color: '#d8b17a' },
       { id: 'text',    label: 'Typography',  color: '#ff8ad8' },
       { id: 'canvas',  label: 'Generative',  color: '#8affc1' },
       { id: 'physics', label: 'Physics',     color: '#ffa36b' },

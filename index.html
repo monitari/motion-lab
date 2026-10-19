@@ -31,8 +31,8 @@
   <header class="mast">
     <a class="logo" href="#top" aria-label="Motion Lab 처음으로"><span class="logo-dot"></span>Motion Lab</a>
     <nav class="mast-nav">
-      <a href="#index">Index</a>
-      <a href="#colophon">Colophon</a>
+      <a href="#index">작품 목록</a>
+      <a href="#colophon">소개</a>
     </nav>
     <span class="mast-meta"><span data-count>0</span> pieces · Rev. 2026.10</span>
     <button class="tool-btn tilt-btn" id="tiltBtn" type="button" hidden title="폰을 기울여 데모를 움직이기">Tilt</button>
@@ -59,7 +59,7 @@
         <span class="cap-fig">Fig. <span id="heroNo">00</span></span>
         <span class="cap-title" id="heroTitle"></span>
         <span class="cap-ctl" id="heroCtl"></span>
-        <button class="cap-btn" id="heroNext" type="button">다른 것</button>
+        <button class="cap-btn" id="heroNext" type="button">다른 작품</button>
         <button class="cap-btn" id="heroOpen" type="button">크게 보기 ↗</button>
       </figcaption>
     </figure>
@@ -70,9 +70,13 @@
       <div class="chips" id="chips"></div>
       <div class="tools">
         <label class="search"><span class="sr">검색</span><input id="q" type="search" placeholder="검색  /" autocomplete="off"></label>
-        <button class="tool-btn" id="random" type="button" title="아무거나 열기">Random ↗</button>
+        <button class="tool-btn" id="random" type="button" title="검색 결과에서 무작위로 열기">무작위 ↗</button>
         <button class="tool-btn" id="mode" type="button"></button>
       </div>
+    </div>
+    <div class="filter-summary">
+      <p id="resultCount" role="status" aria-live="polite" aria-atomic="true"></p>
+      <button class="tool-btn" id="clearFilters" type="button" hidden>조건 초기화 ↺</button>
     </div>
   </nav>
 
@@ -83,7 +87,7 @@
       <div class="colo-big">Motion Lab</div>
       <div>
         <h4>About</h4>
-        <p>목록의 미리보기는 화면에 보이는 동안에만 돌아가고, 벗어나면 정리됩니다. 아무도 만지지 않으면 각 데모는 가짜 커서로 스스로 움직여요. 느리면 상단의 Preview를 Hover로 바꾸세요.</p>
+        <p>목록에서 직접 만져보거나, 제목을 눌러 크게 체험하세요. 미리보기는 화면에 보이는 동안에만 돌아갑니다. 상단에서 자동 재생을 끄면 마우스를 올릴 때만 재생하며, 터치 기기에서는 작품을 눌러 열 수 있어요.</p>
       </div>
       <div>
         <h4>참고한 것들</h4>
@@ -110,17 +114,18 @@
     <p class="colo-note">HTML, CSS, JavaScript. 2026.</p>
   </footer>
 
-  <div class="viewer" id="viewer" hidden>
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="vtitle" aria-describedby="vdesc" hidden>
     <div class="v-top">
       <div class="v-id"><span class="v-no" id="vno"></span><span class="v-cat" id="vcat"></span></div>
       <h2 class="v-title" id="vtitle"></h2>
       <div class="v-tools">
         <span class="v-fps" id="vfps">-- fps</span>
-        <button class="v-btn" id="vrestart" type="button" title="다시 시작 (R)">Restart</button>
+        <button class="v-btn" id="vrestart" type="button" title="다시 시작 (R)">다시 시작</button>
         <button class="v-btn" id="vsound" type="button" title="소리 (M)" hidden>Sound</button>
-        <button class="v-btn" id="vtweak" type="button" title="값 조절 (T)">Tweak</button>
-        <button class="v-btn" id="vsrc" type="button" title="소스 보기 (S)">Source</button>
-        <button class="v-btn" id="vfull" type="button" title="전체 화면 (F)">Fullscreen</button>
+        <button class="v-btn" id="vtweak" type="button" title="값 조절 (T)" aria-expanded="false" aria-controls="vtweakPanel">값 조절</button>
+        <button class="v-btn" id="vsrc" type="button" title="구현 코드 (S)" aria-expanded="false" aria-controls="vsrcPanel">코드</button>
+        <button class="v-btn" id="vshare" type="button">링크 복사</button>
+        <button class="v-btn" id="vfull" type="button" title="전체 화면 (F)">전체 화면</button>
         <button class="v-btn v-close" id="vclose" type="button" title="닫기 (Esc)" aria-label="닫기">✕</button>
       </div>
     </div>
@@ -129,12 +134,13 @@
       <div class="v-hint" id="vhint" aria-hidden="true"><span class="v-hint-ico" id="vhintIco"></span><span class="v-hint-txt" id="vhintTxt"></span></div>
       <div class="v-toast" id="vtoast" role="status" aria-live="polite"></div>
       <div class="v-tweak" id="vtweakPanel" hidden>
-        <div class="v-tweak-head"><span>Tweak</span><button class="v-btn" id="vreset" type="button">Reset</button></div>
+        <div class="v-tweak-head"><span>값 조절</span><button class="v-btn" id="vreset" type="button">초기화</button></div>
         <div class="v-tweak-rows" id="vtweakRows"></div>
       </div>
       <aside class="v-src" id="vsrcPanel" hidden>
-        <div class="v-src-head"><span id="vsrcLabel">source</span><button class="v-btn" id="vcopy" type="button">Copy</button></div>
-        <pre><code id="vcode"></code></pre>
+        <div class="v-src-head"><span id="vsrcLabel">구현 코드</span><button class="v-btn" id="vcopy" type="button">코드 복사</button></div>
+        <p class="v-src-note">구현을 살펴보는 코드입니다. 실행에는 공용 Lab 기능과 데모별 헬퍼가 필요할 수 있어요.</p>
+        <pre tabindex="0" aria-label="구현 코드"><code id="vcode"></code></pre>
       </aside>
     </div>
     <div class="v-bottom">
@@ -156,6 +162,9 @@
   <script src="js/demos/extra-a.js"></script>
   <script src="js/demos/extra-b.js"></script>
   <script src="js/demos/extra-c.js"></script>
+  <script src="js/demos/materials.js"></script>
+  <script src="js/demos/type-studies.js"></script>
+  <script src="js/demos/type-lab.js"></script>
   <script src="js/notes.js"></script>
   <script src="js/app.js"></script>
 </body>

@@ -23,7 +23,7 @@
       let CW = 80, CH = 112;
       const art = (card) => {
         const d = c.dpr, w = Math.round(CW * d), h = Math.round(CH * d);
-        const cv = Lab.offscreen(w, h), x = cv.getContext('2d');
+        const cv = Lab.offscreen(w, h), x = cv.getContext('2d', { willReadFrequently: true }); // 태울 때 픽셀을 읽으므로 처음부터 CPU 캔버스로
         x.scale(d, d);
         const r = CW * 0.08;
         if (card.wild) {
@@ -71,6 +71,8 @@
       layout();
       for (let i = 0; i < 5; i++) hand.push(newCard());
       c.onresize = layout;
+      // 첫 카드를 태울 때 멈칫하지 않도록 노이즈를 미리 만들어 둔다
+      s.timeout(() => burnNoise(hand[0].img.width, hand[0].img.height), 300);
       const zone = () => ({ x: c.w / 2, y: c.h * 0.36, w: CW * 3.4, h: CH * 1.3 });
       const inZone = (x, y) => { const z = zone(); return Math.abs(x - z.x) < z.w / 2 && Math.abs(y - z.y) < z.h / 2; };
       const slot = (i, n) => {
@@ -95,15 +97,25 @@
         deal = 0.45;
       };
       // 태울 때 쓸 원본 픽셀과 노이즈
+      const noiseCache = {};
+      const burnNoise = (w, h) => {
+        const key = w + 'x' + h;
+        if (noiseCache[key]) return noiseCache[key];
+        // 1/4 해상도로 노이즈를 만든 뒤 늘려서 쓴다 (모양은 같고 계산은 1/16)
+        const qw = Math.ceil(w / 4) + 1, qh = Math.ceil(h / 4) + 1, q = new Float32Array(qw * qh), sc = 24 / w;
+        for (let j = 0; j < qh; j++) for (let i = 0; i < qw; i++) q[j * qw + i] = U.clamp(0.5 + Lab.noise(i * sc, j * sc, 3.7) * 0.6 + Lab.noise(i * sc * 3, j * sc * 3, 9) * 0.25, 0, 1);
+        const n = new Float32Array(w * h);
+        for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+          const fx = i / 4, fy = j / 4, x0 = fx | 0, y0 = fy | 0, tx = fx - x0, ty = fy - y0, k = y0 * qw + x0;
+          n[j * w + i] = (q[k] * (1 - tx) + q[k + 1] * tx) * (1 - ty) + (q[k + qw] * (1 - tx) + q[k + qw + 1] * tx) * ty;
+        }
+        return (noiseCache[key] = n);
+      };
       const prepBurn = (cd) => {
         const w = cd.img.width, h = cd.img.height;
         cd.src = cd.img.getContext('2d').getImageData(0, 0, w, h);
         cd.out = Lab.offscreen(w, h); cd.outx = cd.out.getContext('2d'); cd.outImg = cd.outx.createImageData(w, h);
-        cd.noise = new Float32Array(w * h);
-        const sc = 6 / w;
-        for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-          cd.noise[j * w + i] = U.clamp(0.5 + Lab.noise(i * sc, j * sc, cd.phase) * 0.6 + Lab.noise(i * sc * 3, j * sc * 3, 9) * 0.25, 0, 1);
-        }
+        cd.noise = burnNoise(w, h);
       };
       const p = s.pointer(c.cv);
       let drag = null, moved = 0, hover = null, lastUser = -1e9, autoT = 1.5, auto = null;
@@ -218,12 +230,12 @@
         // 타는 카드: 노이즈 임계값을 올리며 가장자리를 불꽃색으로
         for (let i = burning.length - 1; i >= 0; i--) {
           const cd = burning[i];
-          if (!cd.src) prepBurn(cd);
+          if (!cd.src) { prepBurn(cd); cd.flip = Math.random() < 0.5; }
           cd.burn += dt * 0.85;
           U.spring(cd.x, z.x, dt, 60, 12); U.spring(cd.y, z.y, dt, 60, 12); U.spring(cd.r, 0, dt, 60, 12); U.spring(cd.s, 1.2, dt, 100, 14);
           const th = cd.burn, S = cd.src.data, D = cd.outImg.data, N = cd.noise;
           for (let k = 0, j = 0; k < N.length; k++, j += 4) {
-            const n = N[k];
+            const n = cd.flip ? N[N.length - 1 - k] : N[k];
             if (n < th) { D[j + 3] = 0; continue; }
             if (n < th + 0.07 && S[j + 3] > 0) { const e = (n - th) / 0.07; D[j] = 255; D[j + 1] = 120 + e * 130; D[j + 2] = 30 + e * 60; D[j + 3] = 255; continue; }
             D[j] = S[j]; D[j + 1] = S[j + 1]; D[j + 2] = S[j + 2]; D[j + 3] = S[j + 3];
@@ -268,13 +280,16 @@
       const P = s.params({ sa: [0.78, 0.1, 1.4, 0.05, '감지 각도'], sd: [s.large ? 5 : 3.5, 1.5, 20, 0.5, '감지 거리'], turn: [0.7, 0.05, 1.4, 0.05, '회전 속도'],
         decay: [0.9, 0.8, 0.99, 0.005, '흔적 유지'], count: [s.large ? 50000 : 20000, 2000, 200000, 1000, '개체 수', true] });
       let gw, gh, T, T2, img, off, offx, ax, ay, aa, N;
+      // 방향을 256단계로 나눠 삼각함수를 표 한 번으로 끝낸다
+      const DIRS = 256, COS = new Float32Array(DIRS), SIN = new Float32Array(DIRS);
+      for (let k = 0; k < DIRS; k++) { COS[k] = Math.cos((k / DIRS) * U.TAU); SIN[k] = Math.sin((k / DIRS) * U.TAU); }
       const init = () => {
         gw = s.large ? 420 : 240; gh = Math.max(20, Math.round((gw * c.h) / c.w));
         T = new Float32Array(gw * gh); T2 = new Float32Array(gw * gh);
         off = Lab.offscreen(gw, gh); offx = off.getContext('2d'); img = offx.createImageData(gw, gh);
         N = Math.round(P.count);
-        ax = new Float32Array(N); ay = new Float32Array(N); aa = new Float32Array(N);
-        for (let i = 0; i < N; i++) { ax[i] = Math.random() * gw; ay[i] = Math.random() * gh; aa[i] = Math.random() * U.TAU; }
+        ax = new Float32Array(N); ay = new Float32Array(N); aa = new Uint8Array(N);
+        for (let i = 0; i < N; i++) { ax[i] = Math.random() * gw; ay[i] = Math.random() * gh; aa[i] = (Math.random() * DIRS) | 0; }
       };
       init(); c.onresize = init;
       const lut = new Uint8Array(256 * 3);
@@ -284,23 +299,23 @@
         for (let ch = 0; ch < 3; ch++) lut[i * 3 + ch] = pal[k][ch] + (pal[k + 1][ch] - pal[k][ch]) * f;
       }
       const p = s.pointer(c.cv);
+      const sense = (x, y) => (x >= 0 && y >= 0 && x < gw && y < gh ? T[(y | 0) * gw + (x | 0)] : -1);
       const step = s.fixed(1 / 60, (h, t) => {
-        const sa = P.sa, sd = P.sd, ts = P.turn, cs = Math.cos, sn = Math.sin;
+        const sd = P.sd;
+        const saI = Math.round((P.sa / U.TAU) * DIRS), tI = Math.max(1, Math.round((P.turn / U.TAU) * DIRS));
         // 한 스텝에 두 번 움직여 네트워크가 빨리 자란다
         for (let rep = 0; rep < 2; rep++) {
         for (let i = 0; i < N; i++) {
           const x = ax[i], y = ay[i], a = aa[i];
-          let fx = (x + cs(a) * sd) | 0, fy = (y + sn(a) * sd) | 0;
-          const f = fx >= 0 && fy >= 0 && fx < gw && fy < gh ? T[fy * gw + fx] : -1;
-          fx = (x + cs(a + sa) * sd) | 0; fy = (y + sn(a + sa) * sd) | 0;
-          const l = fx >= 0 && fy >= 0 && fx < gw && fy < gh ? T[fy * gw + fx] : -1;
-          fx = (x + cs(a - sa) * sd) | 0; fy = (y + sn(a - sa) * sd) | 0;
-          const r = fx >= 0 && fy >= 0 && fx < gw && fy < gh ? T[fy * gw + fx] : -1;
+          const al = (a + saI) & 255, ar = (a - saI) & 255;
+          const f = sense(x + COS[a] * sd, y + SIN[a] * sd);
+          const l = sense(x + COS[al] * sd, y + SIN[al] * sd);
+          const r = sense(x + COS[ar] * sd, y + SIN[ar] * sd);
           let na = a;
-          if (f >= l && f >= r) { /* 직진 */ } else if (f < l && f < r) na += (Math.random() < 0.5 ? 1 : -1) * ts;
-          else if (l > r) na += ts; else na -= ts;
-          let nx = x + cs(na), ny = y + sn(na);
-          if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) { na = Math.random() * U.TAU; nx = U.clamp(nx, 0, gw - 1); ny = U.clamp(ny, 0, gh - 1); }
+          if (f >= l && f >= r) { /* 직진 */ } else if (f < l && f < r) na = (a + (Math.random() < 0.5 ? tI : -tI)) & 255;
+          else if (l > r) na = (a + tI) & 255; else na = (a - tI) & 255;
+          let nx = x + COS[na], ny = y + SIN[na];
+          if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) { na = (Math.random() * DIRS) | 0; nx = nx < 0 ? 0 : nx >= gw ? gw - 1 : nx; ny = ny < 0 ? 0 : ny >= gh ? gh - 1 : ny; }
           ax[i] = nx; ay[i] = ny; aa[i] = na;
           T[(ny | 0) * gw + (nx | 0)] += 1;
         }
@@ -313,19 +328,29 @@
           if (xx < 0 || yy < 0 || xx >= gw || yy >= gh || i * i + j * j > rad * rad) continue;
           T[yy * gw + xx] = p.down ? -20 : T[yy * gw + xx] + 1.5;
         }
-        const dc = P.decay;
-        for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
-          let sum = 0, n = 0;
-          for (let j = -1; j <= 1; j++) { const yy = y + j; if (yy < 0 || yy >= gh) continue; for (let i = -1; i <= 1; i++) { const xx = x + i; if (xx < 0 || xx >= gw) continue; sum += T[yy * gw + xx]; n++; } }
-          T2[y * gw + x] = (sum / n) * dc;
+        // 3x3 평균 블러를 가로, 세로 두 번으로 나눠서 (가장자리는 안쪽 값을 반복)
+        const dc = P.decay / 9;
+        for (let y = 0; y < gh; y++) {
+          const o = y * gw;
+          T2[o] = T[o] * 2 + T[o + 1];
+          for (let x = 1; x < gw - 1; x++) T2[o + x] = T[o + x - 1] + T[o + x] + T[o + x + 1];
+          T2[o + gw - 1] = T[o + gw - 2] + T[o + gw - 1] * 2;
         }
-        const tmp = T; T = T2; T2 = tmp;
+        for (let x = 0; x < gw; x++) {
+          T[x] = (T2[x] * 2 + T2[gw + x]) * dc;
+          for (let y = 1; y < gh - 1; y++) { const k = y * gw + x; T[k] = (T2[k - gw] + T2[k] + T2[k + gw]) * dc; }
+          const k = (gh - 1) * gw + x; T[k] = (T2[k - gw] + T2[k] * 2) * dc;
+        }
       }, 2);
+      // 흔적 값 -> 밝기 변환표 (exp를 픽셀마다 계산하지 않도록)
+      const TONE = new Uint16Array(2048);
+      for (let i = 0; i < 2048; i++) TONE[i] = Math.min(255, (255 * (1 - Math.exp(-(i / 4) * 0.022))) | 0) * 3;
       s.raf((dt, t) => {
         step(dt, t);
         const d = img.data;
         for (let i = 0, j = 0; i < T.length; i++, j += 4) {
-          const v = T[i] <= 0 ? 0 : Math.min(255, (255 * (1 - Math.exp(-T[i] * 0.022))) | 0) * 3;
+          const tv = T[i];
+          const v = tv <= 0 ? 0 : TONE[tv >= 511 ? 2047 : (tv * 4) | 0];
           d[j] = lut[v]; d[j + 1] = lut[v + 1]; d[j + 2] = lut[v + 2]; d[j + 3] = 255;
         }
         offx.putImageData(img, 0, 0);
@@ -384,7 +409,7 @@
     tags: ['View Transitions API', 'morph', 'click'],
     css: `
     .vt{position:absolute;inset:0;background:#f1eee7;color:#171614;font-family:'Pretendard Variable',Pretendard,sans-serif;overflow:hidden}
-    .vt-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);gap:3cqmin;padding:6cqmin 7cqmin;align-content:center}
+    .vt-grid{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100cqw,118cqh);display:grid;grid-template-columns:repeat(3,1fr);gap:3cqmin;padding:6cqmin 7cqmin;align-content:center}
     .vt-it{cursor:pointer;border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit}
     .vt-cov{aspect-ratio:1;border-radius:2cqmin;box-shadow:0 1.5cqmin 3cqmin -1.5cqmin #0006;transition:transform .3s}
     .vt-it:hover .vt-cov{transform:translateY(-.8cqmin)}
@@ -554,6 +579,7 @@
     .ap-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4cqmin;width:min(90cqw,130cqh)}
     .ap-c{aspect-ratio:3/4;border-radius:3cqmin;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:2.4cqmin;font-size:2.4cqmin}
     .ap-c b{font-size:3cqmin;font-weight:700;margin-bottom:.6cqmin}
+    .ap-2 b,.ap-2 code{color:#111;text-shadow:0 0 1.2cqmin #ffffffaa}.ap-2 code{opacity:.8}
     .ap-c code{font:500 1.7cqmin 'IBM Plex Mono',monospace;opacity:.7}
     .ap-1{background:#16161c;isolation:isolate}
     .ap-1::before{content:'';position:absolute;inset:-.5cqmin;border-radius:3.4cqmin;z-index:-1;

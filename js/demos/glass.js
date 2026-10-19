@@ -647,7 +647,7 @@
         for (let i = drops.length - 1; i >= 0; i--) {
           const q = drops[i];
           q.stick -= dt;
-          if (q.stick < 0) { q.v = Math.min(q.v + dt * 260 * (q.r / (m * 0.02)), 220); q.y += q.v * dt; q.x += Math.sin(t * 3 + i) * 0.2; wipe(q.x, q.y - q.r, q.x, q.y, q.r * 1.1, 0.35); }
+          if (q.stick < 0) { q.v = Math.min(q.v + dt * 260 * (q.r / (m * 0.02)), 220); q.y += q.v * dt; q.x += Math.sin(t * 3 + i) * 0.2; wipe(q.x, q.y - q.r, q.x, q.y, q.r * 0.6, 0.12); }
           if (q.y - q.r > H) { drops.splice(i, 1); continue; }
           d.save();
           d.beginPath(); d.arc(q.x, q.y, q.r, 0, U.TAU); d.clip();
@@ -656,7 +656,10 @@
           d.drawImage(scene, (q.x - R) * dpr, (q.y - R) * dpr, R * 2 * dpr, R * 2 * dpr, -q.r, -q.r, q.r * 2, q.r * 2);
           d.restore();
           d.beginPath(); d.arc(q.x, q.y, q.r, 0, U.TAU);
-          d.strokeStyle = 'rgba(0,0,0,.35)'; d.lineWidth = Math.max(1, q.r * 0.18); d.stroke();
+          // 아래쪽은 어둡게, 위쪽 테두리는 밝게: 볼록한 물방울
+          const rim = d.createLinearGradient(q.x, q.y - q.r, q.x, q.y + q.r);
+          rim.addColorStop(0, 'rgba(255,255,255,.35)'); rim.addColorStop(0.5, 'rgba(255,255,255,0)'); rim.addColorStop(1, 'rgba(0,0,0,.35)');
+          d.strokeStyle = rim; d.lineWidth = Math.max(1, q.r * 0.16); d.stroke();
           d.beginPath(); d.arc(q.x - q.r * 0.3, q.y - q.r * 0.35, q.r * 0.22, 0, U.TAU); d.fillStyle = 'rgba(255,255,255,.75)'; d.fill();
         }
         if (drops.length > 120) drops.splice(0, drops.length - 120);

@@ -194,7 +194,7 @@
     css: `
     .gt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f2efe6;color:#141414;overflow:hidden;cursor:none}
     .gt-line{display:flex;font-family:'Roboto Flex',sans-serif;font-size:21cqmin;line-height:.9;letter-spacing:-.01em;white-space:nowrap}
-    .gt-line span{display:inline-block;font-variation-settings:'wght' 200,'wdth' 60,'opsz' 144;will-change:transform}
+    .gt-line span{display:inline-block;font-variation-settings:'wght' 260,'wdth' 70,'opsz' 144;will-change:transform}
     .gt-dot{position:absolute;left:0;top:0;width:3cqmin;height:3cqmin;margin:-1.5cqmin;border-radius:50%;background:#ff4d2e;pointer-events:none;mix-blend-mode:multiply}
     .gt-cap{position:absolute;bottom:5cqmin;font:600 2.4cqmin 'JetBrains Mono',monospace;letter-spacing:.3em;color:#0007}
     `,
@@ -216,8 +216,8 @@
           const dx = g.x - cx, dy = g.y - cy, d = Math.hypot(dx, dy) / fs;
           const k = Math.max(0, 1 - d / (p.down ? 2.4 : 1.5));
           const e = k * k * (3 - 2 * k);
-          q.w += (100 + e * 900 - q.w) * U.damp(10, dt);
-          q.wd += (40 + e * 111 - q.wd) * U.damp(10, dt);
+          q.w += (260 + e * 740 - q.w) * U.damp(10, dt);
+          q.wd += (70 + e * 81 - q.wd) * U.damp(10, dt);
           q.n.style.fontVariationSettings = `'wght' ${q.w.toFixed(0)},'wdth' ${q.wd.toFixed(1)},'opsz' 144`;
           const pull = e * 0.18;
           U.spring(q.ox, dx * pull, dt, 140, 14); U.spring(q.oy, dy * pull, dt, 140, 14);

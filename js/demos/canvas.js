@@ -71,12 +71,12 @@
     tags: ['3D projection', 'streaks', 'hold'],
     mount(el, s) {
       const c = s.canvas(); const { ctx } = c;
-      const T = s.params({ cruise: [0.25, 0, 1.5, 0.05, '순항 속도'], warp: [3.2, 1, 8, 0.1, '워프 속도'] });
-      const N = s.large ? 1400 : 700;
+      const T = s.params({ cruise: [0.35, 0, 1.5, 0.05, '순항 속도'], warp: [3.2, 1, 8, 0.1, '워프 속도'] });
+      const N = s.large ? 1500 : 800;
       const S = Array.from({ length: N }, () => ({ x: U.rand(-1, 1), y: U.rand(-1, 1), z: U.rand(0.02, 1), pz: 0, h: U.rand(180, 300) }));
       S.forEach((q) => (q.pz = q.z));
       const p = s.pointer();
-      let speed = 0.25, cx = 0, cy = 0;
+      let speed = 0.35, cx = c.w / 2, cy = c.h / 2;
       s.raf((dt, t) => {
         const W = c.w, H = c.h, F = Math.max(W, H) * 0.5;
         const g = p.idle ? Lab.ghost(t * 0.5, W, H) : p;
@@ -92,9 +92,10 @@
           const sx = cx + (q.x / q.z) * F, sy = cy + (q.y / q.z) * F;
           const px = cx + (q.x / q.pz) * F, py = cy + (q.y / q.pz) * F;
           if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) { q.z = 1; q.pz = 1; q.x = U.rand(-1, 1); q.y = U.rand(-1, 1); continue; }
-          const b = 1 - q.z;
-          ctx.strokeStyle = speed > 1 ? `hsla(${q.h},100%,${60 + b * 30}%,${b})` : `rgba(220,230,255,${b})`;
-          ctx.lineWidth = Math.max(0.5, b * (s.large ? 3 : 2.2));
+          const warp = U.clamp((speed - 0.6) / 1.5, 0, 1);
+          const b = 1 - q.z, bb = U.lerp(Math.min(1, 0.28 + Math.sqrt(b) * 0.9), b, warp); // 순항 중엔 먼 별도 희미하게 보이고, 워프 중엔 가까운 별만 밝게
+          ctx.strokeStyle = speed > 1 ? `hsla(${q.h},100%,${60 + b * 30}%,${bb})` : `rgba(220,230,255,${bb})`;
+          ctx.lineWidth = Math.max(U.lerp(1.3, 0.8, warp), b * (s.large ? U.lerp(3.6, 2.4, warp) : U.lerp(2.8, 1.8, warp)));
           ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sx + 0.1, sy); ctx.stroke();
         }
       });
@@ -243,11 +244,17 @@
         const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = ga * i;
         const x = Math.cos(th) * r, z = Math.sin(th) * r;
         const n = Lab.noise(x * 1.6 + 10, y * 1.6, z * 1.6) + 0.5 * Lab.noise(x * 4, y * 4 + 5, z * 4);
-        pts.push([x, y, z, n > 0.08]);
+        pts.push([x, y, z, n > 0.02]);
       }
       const land = pts.filter((q) => q[3]);
       const arcs = [];
-      const newArc = () => { const a = U.pick(land), b = U.pick(land); arcs.push({ a, b, t: 0, h: U.pick([190, 320, 45]) }); };
+      const newArc = () => {
+        const a = U.pick(land);
+        let b = U.pick(land);
+        // 너무 가깝거나 지구 반대편이면 다시 고른다 (반대편이면 slerp가 불안정)
+        for (let k = 0; k < 20; k++) { const d = Math.acos(U.clamp(a[0] * b[0] + a[1] * b[1] + a[2] * b[2], -1, 1)); if (d > 0.5 && d < 1.9) break; b = U.pick(land); }
+        arcs.push({ a, b, t: 0, h: U.pick([190, 320, 45]) });
+      };
       for (let i = 0; i < 5; i++) newArc();
       let yaw = 0, pitch = -0.35, vy = 0.25, vp = 0, drag = false, lx = 0, ly = 0;
       const p = s.pointer();
@@ -262,7 +269,7 @@
         const d = U.clamp(a[0] * b[0] + a[1] * b[1] + a[2] * b[2], -1, 1), om = Math.acos(d);
         if (om < 1e-3) return a;
         const s1 = Math.sin((1 - t) * om) / Math.sin(om), s2 = Math.sin(t * om) / Math.sin(om);
-        const h = 1 + Math.sin(t * Math.PI) * om * 0.22;
+        const h = 1 + Math.sin(t * Math.PI) * Math.min(om, 1.6) * 0.14;
         return [(a[0] * s1 + b[0] * s2) * h, (a[1] * s1 + b[1] * s2) * h, (a[2] * s1 + b[2] * s2) * h];
       };
       s.raf((dt, t) => {
@@ -283,13 +290,15 @@
         for (const q of pts) {
           const [x, y, z] = rot(q, cY, sY, cP, sP);
           const sx = cx + x * R, sy = cy0 + y * R;
-          const front = z > 0 ? 0 : 1;
+          if (z > 0.02) continue; // 뒷면은 불투명한 몸통에 가려진다
+          const front = 0;
           const depth = (1 - z) / 2;
-          let sz = (q[3] ? 2.3 : 1.1) * (0.5 + depth * 0.8) * Math.max(1, R / 200);
-          let a = q[3] ? 0.35 + depth * 0.65 : 0.12 + depth * 0.3;
-          if (front) a *= 0.25;
+          // 왼쪽 위에서 오는 빛
+          const lit = U.clamp(0.35 + (-x * 0.45 - y * 0.55 - z * 0.7) * 0.8, 0.15, 1);
+          let sz = (q[3] ? 2.6 : 1.1) * (0.5 + depth * 0.8) * Math.max(1, R / 200);
+          let a = q[3] ? (0.45 + depth * 0.55) * lit : 0.1 + depth * 0.18;
           const dh = Math.hypot(sx - hx, sy - hy);
-          let col = q[3] ? '120,200,255' : '80,110,180';
+          let col = q[3] ? '140,215,255' : '70,100,170';
           if (dh < R * 0.25 && !front) { const k = 1 - dh / (R * 0.25); sz *= 1 + k * 1.5; a = Math.min(1, a + k); col = '255,140,220'; }
           ctx.fillStyle = `rgba(${col},${a})`;
           ctx.fillRect(sx - sz / 2, sy - sz / 2, sz, sz);
@@ -308,11 +317,14 @@
           for (let k = 0; k <= 30; k++) {
             const tt = t0 + ((t1 - t0) * k) / 30;
             const [x, y, z] = rot(slerp(ar.a, ar.b, tt), cY, sY, cP, sP);
-            if (z > 0.15) { first = true; continue; }
+            if (z > 0 && x * x + y * y < 1) { first = true; continue; } // 지구 뒤에 가려진 구간
             const sx = cx + x * R, sy = cy0 + y * R;
             first ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy); first = false;
           }
           ctx.strokeStyle = `hsla(${ar.h},100%,70%,.85)`; ctx.stroke();
+          // 날아가는 머리
+          const [hx2, hy2, hz2] = rot(slerp(ar.a, ar.b, t1), cY, sY, cP, sP);
+          if (ar.t < 1 && !(hz2 > 0 && hx2 * hx2 + hy2 * hy2 < 1)) { ctx.fillStyle = `hsl(${ar.h},100%,82%)`; ctx.beginPath(); ctx.arc(cx + hx2 * R, cy0 + hy2 * R, Math.max(2, R / 110), 0, U.TAU); ctx.fill(); }
         }
       });
     },
@@ -522,19 +534,29 @@
         ctx.fillStyle = 'rgba(0,0,0,.09)'; ctx.fillRect(0, 0, W, H);
         const g = p.idle ? Lab.ghost(t * 0.6, W, H) : p;
         const R = Math.min(W, H) * 0.18;
-        waves.forEach((w) => (w.r += step * Math.max(W, H)));
+        waves.forEach((w) => (w.r += step * Math.max(W, H) * 0.6));
         while (waves.length && waves[0].r > Math.max(W, H) * 1.5) waves.shift();
+        ctx.textAlign = 'center';
+        let curFont = '';
         cols.forEach((col, i) => {
           const x = i * fs + fs / 2;
           col.y += fs * col.v * step * 30 * 0.5;
-          for (const w of waves) { const d = Math.hypot(x - w.x, col.y - w.y); if (Math.abs(d - w.r) < fs * 3) col.y -= fs * 4; }
           if (col.y > H + fs * 10 && Math.random() < 0.05) col.y = U.rand(-H * 0.5, 0);
+          // 파동 고리가 이 열을 지나는 두 지점에 밝은 글자를 찍는다
+          for (const w of waves) {
+            const dx = x - w.x, rem = w.r * w.r - dx * dx;
+            if (rem <= 0) continue;
+            const off = Math.sqrt(rem), fade = Math.max(0, 1 - w.r / (Math.max(W, H) * 1.2));
+            ctx.font = curFont = `${fs}px "JetBrains Mono",monospace`;
+            ctx.fillStyle = `rgba(220,255,235,${fade})`;
+            for (const yy of [w.y - off, w.y + off]) if (yy > -fs && yy < H + fs) ctx.fillText(G[(Math.random() * G.length) | 0], x, yy);
+          }
           const y = col.y;
           const d = Math.hypot(x - g.x, y - g.y);
           const k = d < R ? 1 - d / R : 0;
-          const size = fs * (1 + k * 1.2);
-          ctx.font = `${size}px "JetBrains Mono",monospace`;
-          ctx.textAlign = 'center';
+          const size = Math.round(fs * (1 + k * 1.2));
+          const f = `${size}px "JetBrains Mono",monospace`;
+          if (f !== curFont) { ctx.font = f; curFont = f; }
           ctx.fillStyle = k > 0 ? `rgb(${200 + k * 55},255,${220 + k * 35})` : '#b8ffcf';
           ctx.fillText(G[(Math.random() * G.length) | 0], x, y);
           ctx.fillStyle = k > 0 ? `rgba(120,255,200,${0.4 + k * 0.6})` : 'rgba(30,220,90,.7)';

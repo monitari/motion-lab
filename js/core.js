@@ -15,6 +15,7 @@
       { id: 'canvas',  label: 'Generative',  color: '#8affc1' },
       { id: 'physics', label: 'Physics',     color: '#ffa36b' },
       { id: 'shader',  label: 'Shader',      color: '#b69cff' },
+      { id: 'sound',   label: 'Sound',       color: '#f78fb3' },
       { id: 'ui',      label: 'Interaction', color: '#6bc6ff' },
       { id: 'modern',  label: 'Web Platform', color: '#7cffd4' },
     ],

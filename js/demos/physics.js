@@ -496,7 +496,7 @@
      6. Harp Strings — 모달 합성 + 소리
      ======================================================= */
   Lab.register({
-    id: 'harp', cat: 'physics', title: 'Laser Harp', sound: true,
+    id: 'harp', cat: 'sound', title: 'Laser Harp', sound: true,
     tags: ['modal synthesis', 'WebAudio', 'mouse'],
     mount(el, s) {
       const c = s.canvas(); const { ctx } = c;

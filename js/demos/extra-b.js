@@ -457,7 +457,7 @@
      Bubble Wrap — 뽁뽁이
      ======================================================= */
   Lab.register({
-    id: 'bubble-wrap', cat: 'ui', title: 'Bubble Wrap', sound: true,
+    id: 'bubble-wrap', cat: 'sound', title: 'Bubble Wrap', sound: true,
     tags: ['canvas', 'WebAudio', 'click/drag'],
     mount(el, s) {
       const c = s.canvas(); const { ctx } = c;

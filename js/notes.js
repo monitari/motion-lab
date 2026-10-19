@@ -12,6 +12,7 @@
     physics: '스프링, 버렛 적분, 셀룰러 오토마타. 잡고 당겨볼 수 있는 것들.',
     shader: '풀스크린 프래그먼트 셰이더 하나씩. 마우스 좌표가 유니폼으로 들어갑니다.',
     ui: '실제 화면에 가져다 써도 되는 크기의 효과들.',
+    sound: '소리가 나는 것들. 크게 열면 소리가 켜지고, 오른쪽 위 버튼이나 M 키로 끌 수 있습니다.',
     modern: '최근 브라우저에 들어온 기능들. View Transitions, 스크롤 타임라인, @property처럼 예전엔 JS가 필요했던 걸 CSS가 해냅니다.',
   };
 
@@ -120,10 +121,16 @@
     'text-trail': ['커서가 지나간 길을 문장 길이만큼만 기억하고, 그 위에 글자를 접선 방향으로 눕힙니다. 마지막 글자가 늘 커서 바로 뒤에 붙어 따라와요.', 'Move:문장 끌기|Click:다음 문장'],
     'melting-type': ['글자 아래쪽 절반을 2px 세로 조각으로 잘라, 녹은 길이만큼 늘여 그립니다. 커서의 열을 받은 조각은 흘러내리고, 식으면 천천히 다시 오므라들어요. 떨어진 방울은 바닥에 고입니다.', 'Move:녹이기|Hold:더 뜨겁게|Dbl click:다음 단어'],
     'ripple-paragraph': ['진짜 DOM 텍스트 위로 물결이 지나갑니다. 굵기는 text-stroke로 그려서 줄바꿈이 흔들리지 않고, 글자는 그대로 선택하고 복사할 수 있어요.', 'Click:물결|Move:가까운 단어 강조'],
+    // 다섯 번째 묶음
+    'booster-pack': ['카드 팩을 직접 뜯습니다. 위쪽 띠를 옆으로 끌면 점선을 따라 찢기고, 카드 다섯 장이 올라옵니다. 맨 위 카드를 던지면 다음 장이 나오고, 마지막 장은 금박이나 프리즘 레어예요.', 'Drag 띠:찢기|Click 팩:자동으로 뜯기|Drag 카드:던지기'],
+    'key-shapes': ['키마다 자판 위 자리에 모양과 소리가 정해져 있습니다. 숫자 줄은 높은 음, 아랫줄은 낮은 음과 북소리예요. 스페이스로 색 조합을 바꾸고, 화면을 눌러도 가장 가까운 키가 울립니다.', 'Type:연주|Space:색 바꾸기|Click:가까운 키'],
+    'fur-brush': ['털 수만 가닥의 방향을 기억합니다. 누르고 쓸면 그 방향으로 눕고, 빛을 받는 방향에 따라 밝기가 달라져서 벨벳에 손가락으로 쓰듯 그림이 남아요. 그냥 지나가면 털이 잠깐 일어섭니다.', 'Drag:쓰다듬기|Hover:털 세우기|Click 모드:헝클기, 색'],
+    'grass-field': ['풀잎 수천 장을 원근에 따라 띠로 나눠 그립니다. 풀잎마다 스프링이 있어서 커서를 피해 갈라졌다 돌아오고, 클릭하면 돌풍이 퍼지며 반딧불이 날아올라요.', 'Move:풀 가르기|Click:돌풍'],
+    'light-shadow': ['커서가 전구가 됩니다. 벽 꼭짓점마다 광선을 쏴서 빛이 닿는 다각형을 구하고, 전구 위치를 조금씩 흔들어 여러 번 겹쳐서 부드러운 그림자를 만들어요. RGB 모드에서는 세 색의 그림자가 섞입니다.', 'Move:전구|Click:색 전구 놓기|Drag 벽:옮기기'],
     'like-burst': ['누르면 하트가 튀고, 꾹 누르고 있으면 계속 쌓입니다. 숫자는 자리마다 0부터 9까지 세로로 굴러가요.', 'Click:좋아요|Hold:연타'],
   };
 
-  Lab.newIds = new Set(['text-reflow', 'typewriter', 'word-clock', 'text-trail', 'melting-type', 'ripple-paragraph', 'type-cylinder', 'contour-type', 'chromatic-press', 'hangul-assembly', 'watercolor-bloom', 'unwoven-poster', 'chladni-plate', 'joker-hand', 'physarum', 'silk-gradient', 'view-transitions', 'scroll-driven', 'at-property']);
+  Lab.newIds = new Set(['booster-pack', 'key-shapes', 'fur-brush', 'grass-field', 'light-shadow', 'text-reflow', 'typewriter', 'word-clock', 'text-trail', 'melting-type', 'ripple-paragraph', 'type-cylinder', 'contour-type', 'chromatic-press', 'hangul-assembly', 'watercolor-bloom', 'unwoven-poster', 'chladni-plate', 'joker-hand', 'physarum', 'silk-gradient', 'view-transitions', 'scroll-driven', 'at-property']);
 
   Lab.demos.forEach((d) => {
     const n = N[d.id];

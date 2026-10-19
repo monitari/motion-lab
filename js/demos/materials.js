@@ -201,7 +201,7 @@
   });
 
   Lab.register({
-    id: 'chladni-plate', cat: 'physics', title: 'Chladni Plate', sound: true,
+    id: 'chladni-plate', cat: 'sound', title: 'Chladni Plate', sound: true,
     tags: ['cymatics', '공명', '모래', '소리', 'nodal patterns', 'canvas'],
     mount(el, s) {
       const c = s.canvas(), x = c.ctx, p = s.pointer(c.cv);

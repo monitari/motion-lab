@@ -130,7 +130,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
   await check('direct link closes without leaving site', `location.href.startsWith(${JSON.stringify(url)}) && !location.hash`);
   if (process.argv.includes('--new-works')) {
     const works = ['watercolor-bloom', 'unwoven-poster', 'chladni-plate'];
-    await check('95 unique works and complete descriptions', `Lab.demos.length===95 && new Set(Lab.demos.map(d=>d.id)).size===95 && Lab.demos.every(d=>d.desc && d.ctl.length)`);
+    await check('100 unique works and complete descriptions', `Lab.demos.length===100 && new Set(Lab.demos.map(d=>d.id)).size===100 && Lab.demos.every(d=>d.desc && d.ctl.length)`);
     await evaluate(`Lab.sound.on=false; window.auditScopes=[]; var originalMount=Lab.mount; Lab.mount=(...args)=>{const scope=originalMount(...args); if(${JSON.stringify(works)}.includes(args[0].id)) auditScopes.push(scope); return scope;}`);
     for (const mobile of [false, true]) {
       await cdp('Emulation.setDeviceMetricsOverride', { width: mobile ? 390 : 1100, height: mobile ? 844 : 800, deviceScaleFactor: 1, mobile });

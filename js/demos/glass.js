@@ -133,6 +133,10 @@
       background:radial-gradient(circle at var(--mx) var(--my),#fff,#ffffff30 35%,#ffffff18);
       -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
     .fg-cc{left:5%;top:30%;width:50%;aspect-ratio:1.586;padding:3.4cqw}
+    .fg-bp-top{display:flex;justify-content:space-between;font:600 1.6cqw 'JetBrains Mono',monospace;letter-spacing:.14em;opacity:.8}
+    .fg-bp-route{display:flex;align-items:center;gap:2cqw;margin-top:3cqw}
+    .fg-bp-route b{display:block;font:700 6.4cqw/1 'Space Grotesk',sans-serif;letter-spacing:-.02em}.fg-bp-route small{font-size:1.7cqw;opacity:.75}
+    .fg-bp-line{flex:1;height:1px;border-top:.3cqw dashed #ffffff90;position:relative}.fg-bp-line svg{position:absolute;left:50%;top:50%;width:3.4cqw;transform:translate(-50%,-55%) rotate(90deg);color:#fff;filter:drop-shadow(0 0 .6cqw #0004)}
     .fg-chip{width:7cqw;height:5.4cqw;border-radius:1cqw;background:linear-gradient(135deg,#ffe9a8,#c9a24a);box-shadow:inset 0 0 0 .3cqw #0002}
     .fg-num{font:600 3.3cqw 'JetBrains Mono',monospace;letter-spacing:.12em;margin-top:4.2cqw}
     .fg-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:2.6cqw;font-size:1.9cqw;opacity:.85}
@@ -155,9 +159,9 @@
       const root = s.html(`<div class="fg">
         <div class="fg-orb o1"></div><div class="fg-orb o2"></div><div class="fg-orb o3"></div><div class="fg-orb fol"></div>
         <div class="fg-comp">
-          <div class="fg-card fg-cc"><div class="fg-chip"></div><div class="fg-logo"><i></i><i></i></div>
-            <div class="fg-num">4821 0093 7710 2026</div>
-            <div class="fg-row"><div>Card holder<b>MOTION LAB</b></div><div>Expires<b>12/29</b></div></div></div>
+          <div class="fg-card fg-cc"><div class="fg-bp-top"><span>BOARDING PASS</span><span>ML 027 · 20 OCT</span></div>
+            <div class="fg-bp-route"><div><b>ICN</b><small>서울/인천</small></div><div class="fg-bp-line"><svg viewBox="0 0 24 24"><path d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z" fill="currentColor"/></svg></div><div style="text-align:right"><b>CDG</b><small>PARIS</small></div></div>
+            <div class="fg-row"><div>Gate<b>27</b></div><div>Seat<b>14A</b></div><div>Boards<b>09:40</b></div></div></div>
           <div class="fg-card fg-w"><div class="fg-sun"></div><small>SEOUL</small><div class="fg-temp">24°</div><small>Mostly sunny</small>
             <div class="fg-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span></div></div>
           <div class="fg-card fg-m"><div class="fg-cover"></div><div><b>Glass Hours</b><small>The Refractors</small></div><div class="fg-bar"><i></i></div></div>

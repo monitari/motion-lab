@@ -110,12 +110,36 @@
     tags: ['particles', 'gravity', 'click'],
     mount(el, s) {
       const c = s.canvas(); const { ctx } = c;
+      const ov = s.canvas(); const octx = ov.ctx;
       const rockets = [], sparks = [];
+      let city, skyGrad;
+      const RIVER = 0.78;
+      const buildCity = () => {
+        const W = c.w, H = c.h, m = Math.min(W, H), base = H * RIVER;
+        city = Lab.offscreen(c.cv.width, c.cv.height);
+        const x = city.getContext('2d'); x.scale(c.dpr, c.dpr);
+        let bx = -10;
+        while (bx < W) {
+          const bw = m * U.rand(0.04, 0.1), bh = H * U.rand(0.06, 0.24) * (Math.abs(bx - W * 0.45) < W * 0.2 ? 1.4 : 1);
+          x.fillStyle = '#07060f'; x.fillRect(bx, base - bh, bw, bh);
+          for (let wy = base - bh + m * 0.012; wy < base - m * 0.01; wy += m * 0.018) for (let wx = bx + m * 0.008; wx < bx + bw - m * 0.01; wx += m * 0.014)
+            if (Math.random() < 0.3) { x.fillStyle = `hsla(${U.pick([40, 45, 35, 200])},80%,${U.rand(55, 75)}%,${U.rand(0.5, 0.95)})`; x.fillRect(wx, wy, m * 0.006, m * 0.008); }
+          bx += bw + U.rand(0, m * 0.01);
+        }
+        // 송신탑
+        const tx = W * 0.62; x.fillStyle = '#07060f';
+        x.fillRect(tx - m * 0.006, base - H * 0.42, m * 0.012, H * 0.42); x.beginPath(); x.ellipse(tx, base - H * 0.33, m * 0.03, m * 0.016, 0, 0, U.TAU); x.fill();
+        x.fillStyle = '#ff4a3a'; x.beginPath(); x.arc(tx, base - H * 0.42, m * 0.005, 0, U.TAU); x.fill();
+        skyGrad = ctx.createLinearGradient(0, 0, 0, base);
+        skyGrad.addColorStop(0, 'rgba(4,3,14,.22)'); skyGrad.addColorStop(1, 'rgba(26,16,44,.22)');
+      };
+      buildCity(); ov.onresize = buildCity;
       const launch = (tx, ty) => {
-        const W = c.w, H = c.h;
-        const x0 = U.lerp(W * 0.3, W * 0.7, Math.random());
+        const W = c.w, H = c.h, y0 = H * RIVER;
+        ty = Math.min(ty, H * 0.55);
+        const x0 = U.lerp(W * 0.25, W * 0.75, Math.random());
         const T = U.rand(0.8, 1.1);
-        rockets.push({ x: x0, y: H, vx: (tx - x0) / T, vy: (ty - H) / T - 0.5 * 250 * T, t: 0, T, tx, ty, h: U.rand(360) });
+        rockets.push({ x: x0, y: y0, vx: (tx - x0) / T, vy: (ty - y0) / T - 0.5 * 250 * T, t: 0, T, tx, ty, h: U.rand(360) });
       };
       const burst = (r) => {
         const type = U.pick(['peony', 'ring', 'willow', 'crackle', 'double']);
@@ -136,7 +160,7 @@
       s.raf((dt) => {
         const W = c.w, H = c.h;
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = `rgba(6,4,18,${0.22})`; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, W, H);
         if (flash > 0) { ctx.fillStyle = `rgba(255,220,200,${flash * 0.06})`; ctx.fillRect(0, 0, W, H); flash -= dt * 3; }
         if (p.idle) { auto -= dt; if (auto < 0) { auto = U.rand(0.5, 1.2); launch(U.rand(W * 0.15, W * 0.85), U.rand(H * 0.15, H * 0.45)); } }
         ctx.globalCompositeOperation = 'lighter';
@@ -163,6 +187,22 @@
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
         if (sparks.length > 6000) sparks.splice(0, sparks.length - 6000);
+        // 강물: 하늘과 도시를 거꾸로 비추고 가로 줄마다 흔든다
+        const base = H * RIVER, d = c.dpr;
+        octx.clearRect(0, 0, W, H);
+        octx.fillStyle = '#04030b'; octx.fillRect(0, base, W, H - base);
+        const strip = 3;
+        for (let y = base; y < H; y += strip) {
+          const k = (y - base) / (H - base), src = base - (y - base) - strip;
+          if (src < 0) break;
+          const wob = Math.sin(y * 0.15 + performance.now() / 300) * (2 + k * 8);
+          octx.globalAlpha = 0.55 * (1 - k * 0.7);
+          octx.drawImage(c.cv, 0, src * d, c.cv.width, strip * d, wob, y + strip, W, -strip);
+          octx.drawImage(city, 0, src * d, city.width, strip * d, wob, y + strip, W, -strip);
+        }
+        octx.globalAlpha = 1;
+        octx.drawImage(city, 0, 0, W, H);
+        octx.fillStyle = 'rgba(255,255,255,.08)'; octx.fillRect(0, base, W, 1);
       });
     },
   });

@@ -9,62 +9,84 @@
      1. Magnetic Buttons
      ======================================================= */
   Lab.register({
-    id: 'magnetic', cat: 'ui', title: 'Magnetic Buttons',
-    tags: ['spring', 'parallax', 'hover'],
+    id: 'magnetic', cat: 'ui', title: 'Elevator Panel', sound: true,
+    tags: ['magnetic', 'spring', 'click'],
     css: `
-    .mg{position:absolute;inset:0;display:grid;place-items:center;background:#0e0e12;cursor:none}
-    .mg-cur{position:absolute;left:0;top:0;z-index:0;border-radius:999px;background:#fff;pointer-events:none;will-change:transform,width,height}
-    .mg-grid{position:relative;z-index:1}
-    .mg-grid{display:grid;grid-template-columns:repeat(3,auto);gap:7cqmin 9cqmin;align-items:center;justify-items:center}
-    .mg-b{position:relative;border:0;cursor:pointer;font:600 3.2cqmin 'Space Grotesk',sans-serif;color:#fff;overflow:hidden;will-change:transform;isolation:isolate}
-    .mg-b span{position:relative;display:inline-block;z-index:2;will-change:transform;pointer-events:none}
-    .mg-b i{position:absolute;z-index:1;width:0;height:0;border-radius:50%;transform:translate(-50%,-50%);transition:width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1);pointer-events:none}
-    .mg-b:hover i{width:300%;height:300%}
-    .mg-1{padding:3cqmin 6cqmin;border-radius:10cqmin;background:#fff;color:#111}.mg-1 i{background:#ff4d6d}.mg-1:hover{color:#fff}
-    .mg-2{width:16cqmin;height:16cqmin;border-radius:50%;border:.3cqmin solid #ffffff60;background:none;font-size:5cqmin}.mg-2 i{background:#6bffb8}.mg-2:hover{color:#111}
-    .mg-3{padding:3cqmin 5cqmin;border-radius:2cqmin;background:linear-gradient(135deg,#7a5cff,#ff5f9a)}.mg-3 i{background:#ffcf3f}.mg-3:hover{color:#111}
-    .mg-4{padding:3cqmin 6cqmin;border-radius:10cqmin;background:none;border:.3cqmin solid #fff}.mg-4 i{background:#fff}.mg-4:hover{color:#111}
-    .mg-5{width:13cqmin;height:13cqmin;border-radius:3cqmin;background:#1f1f2a;font-size:5cqmin}.mg-5 i{background:#3fb8ff}
-    .mg-6{padding:3cqmin 5cqmin;border-radius:10cqmin;background:#ffcf3f;color:#111}.mg-6 i{background:#111}.mg-6:hover{color:#ffcf3f}
+    .ev{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;
+      background:linear-gradient(90deg,#1b1916 0 8%,#2a2622 8% 9%,#1b1916 9%),radial-gradient(ellipse at 50% 30%,#3a342d,#191714 70%);background-blend-mode:multiply}
+    .ev::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,#ffffff05 0 1px,#0000 1px 9cqmin)}
+    .ev-panel{position:relative;width:min(44cqmin,60cqw);height:88cqmin;border-radius:2cqmin;padding:4cqmin 4.4cqmin;display:flex;flex-direction:column;align-items:center;gap:3cqmin;
+      background:repeating-linear-gradient(90deg,#9a9ca1 0 .25cqmin,#b9bbc0 .25cqmin .5cqmin,#a6a8ad .5cqmin .8cqmin),linear-gradient(#c8cacf,#8d9096);background-blend-mode:overlay;
+      box-shadow:inset 0 0 0 .3cqmin #ffffff55,inset 0 -1cqmin 2cqmin #0004,0 3cqmin 6cqmin -1cqmin #000c}
+    .ev-screw{position:absolute;width:1.6cqmin;height:1.6cqmin;border-radius:50%;background:radial-gradient(circle at 35% 35%,#eee,#777);box-shadow:inset 0 0 0 .2cqmin #0003}
+    .ev-screw::after{content:'';position:absolute;left:20%;right:20%;top:45%;height:10%;background:#555;transform:rotate(35deg)}
+    .ev-disp{width:100%;height:13cqmin;border-radius:1.2cqmin;background:#120705;display:flex;align-items:center;justify-content:center;gap:2.2cqmin;
+      box-shadow:inset 0 .6cqmin 1.4cqmin #000,0 0 0 .3cqmin #6c6e73;font:700 9cqmin/1 'JetBrains Mono',monospace;color:#ff5a2a;text-shadow:0 0 1.6cqmin #ff3a1aaa}
+    .ev-arrow{font-size:5cqmin;opacity:.15;transition:opacity .3s}.ev-arrow.on{opacity:1}
+    .ev-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2.6cqmin 4.4cqmin;flex:1;align-content:center}
+    .ev-b{position:relative;width:11cqmin;height:11cqmin;border-radius:50%;border:0;cursor:pointer;padding:0;will-change:transform;
+      background:radial-gradient(circle at 40% 32%,#f4f4f2,#b8b9bc 55%,#7d7f84);box-shadow:0 .5cqmin 0 #5c5e63,0 .9cqmin 1.4cqmin #0006,inset 0 0 0 .5cqmin #d9dade}
+    .ev-b span{position:absolute;inset:0;display:grid;place-items:center;font:700 4cqmin 'Space Grotesk',sans-serif;color:#2b2d31;will-change:transform;pointer-events:none}
+    .ev-b::after{content:'';position:absolute;inset:-.6cqmin;border-radius:50%;box-shadow:0 0 0 .4cqmin #ffb02e00;transition:box-shadow .2s}
+    .ev-b.lit::after{box-shadow:0 0 0 .4cqmin #ffb02e,0 0 2.4cqmin .6cqmin #ffb02e99}
+    .ev-b.lit span{color:#b06a00;text-shadow:0 0 1cqmin #ffc75a}
+    .ev-b:active{box-shadow:0 .1cqmin 0 #5c5e63,0 .3cqmin .6cqmin #0006,inset 0 0 0 .5cqmin #d9dade}
+    .ev-row{display:flex;gap:3cqmin}
+    .ev-row .ev-b{width:9cqmin;height:9cqmin}.ev-row .ev-b span{font-size:3cqmin}
+    .ev-alarm{background:radial-gradient(circle at 40% 32%,#ffe066,#e6a400 60%,#9a6b00)!important}
+    .ev-plate{font:600 1.7cqmin 'JetBrains Mono',monospace;letter-spacing:.2em;color:#4a4c51;text-shadow:0 1px 0 #ffffff70}
     `,
     mount(el, s) {
-      const labels = [['mg-1', 'Get started'], ['mg-2', '↗'], ['mg-3', 'Magnetic'], ['mg-4', 'Outline'], ['mg-5', '♥'], ['mg-6', 'Subscribe']];
-      const root = s.html(`<div class="mg"><div class="mg-cur"></div><div class="mg-grid">${labels.map(([c, l]) => `<button class="mg-b ${c}"><i></i><span>${l}</span></button>`).join('')}</div></div>`);
-      const B = [...root.querySelectorAll('.mg-b')].map((n) => ({ n, l: n.querySelector('span'), i: n.querySelector('i'), x: { x: 0, v: 0 }, y: { x: 0, v: 0 }, lx: { x: 0, v: 0 }, ly: { x: 0, v: 0 } }));
-      B.forEach((b) => s.on(b.n, 'pointerenter', (e) => { const r = b.n.getBoundingClientRect(); b.i.style.left = e.clientX - r.left + 'px'; b.i.style.top = e.clientY - r.top + 'px'; }));
-      B.forEach((b) => s.on(b.n, 'pointerleave', (e) => { const r = b.n.getBoundingClientRect(); b.i.style.left = e.clientX - r.left + 'px'; b.i.style.top = e.clientY - r.top + 'px'; }));
+      const floors = ['9', '10', '7', '8', '5', '6', '3', '4', '1', '2', 'B1', 'B2'];
+      const root = s.html(`<div class="ev"><div class="ev-panel">
+        <i class="ev-screw" style="left:2cqmin;top:2cqmin"></i><i class="ev-screw" style="right:2cqmin;top:2cqmin"></i><i class="ev-screw" style="left:2cqmin;bottom:2cqmin"></i><i class="ev-screw" style="right:2cqmin;bottom:2cqmin"></i>
+        <div class="ev-disp"><span class="ev-arrow up">▲</span><span class="ev-num">1</span><span class="ev-arrow dn">▼</span></div>
+        <div class="ev-grid">${floors.map((f) => `<button class="ev-b" data-f="${f}"><span>${f}</span></button>`).join('')}</div>
+        <div class="ev-row"><button class="ev-b" data-c="open"><span>◀▶</span></button><button class="ev-b" data-c="close"><span>▶◀</span></button><button class="ev-b ev-alarm" data-c="bell"><span><svg viewBox="0 0 24 24" style="width:45%" fill="#5a3b00"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zm-2.2 15a2.2 2.2 0 0 0 4.4 0z"/></svg></span></button></div>
+        <div class="ev-plate">MAX 15 PERSONS · 1000 KG</div></div></div>`);
+      const num = root.querySelector('.ev-num'), up = root.querySelector('.up'), dn = root.querySelector('.dn');
+      const B = [...root.querySelectorAll('.ev-b')].map((n) => ({ n, l: n.querySelector('span'), x: { x: 0, v: 0 }, y: { x: 0, v: 0 }, lx: { x: 0, v: 0 }, ly: { x: 0, v: 0 } }));
+      const order = ['B2', 'B1', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+      let cur = 2, dir = 0, moveT = 0, doorT = 0, lastUser = -1e9, autoT = 2;
+      const queue = new Set();
+      const btnOf = (f) => B.find((b) => b.n.dataset.f === f);
+      const ding = () => s.large && (Lab.tone(1318.5, { dur: 1.2, gain: 0.14 }), Lab.tone(1046.5, { dur: 1.5, gain: 0.14, at: 0.32 }));
+      const press = (b) => {
+        if (s.large) Lab.burst({ dur: 0.03, freq: 2600, q: 4, gain: 0.25, curve: 5 });
+        const f = b.n.dataset.f, cmd = b.n.dataset.c;
+        b.x.v += U.rand(-40, 40); b.y.v += 160;
+        if (f) { if (order[cur] === f) { b.n.classList.add('lit'); s.timeout(() => b.n.classList.remove('lit'), 400); ding(); } else { queue.add(f); b.n.classList.add('lit'); } }
+        else if (cmd === 'bell' && s.large) [0, 0.12, 0.24, 0.36].forEach((a) => Lab.tone(1900, { type: 'square', dur: 0.08, gain: 0.05, at: a }));
+        else { b.n.classList.add('lit'); s.timeout(() => b.n.classList.remove('lit'), 300); }
+      };
+      B.forEach((b) => s.on(b.n, 'click', () => { lastUser = performance.now(); press(b); }));
       const p = s.pointer(root);
-      const cur = root.querySelector('.mg-cur');
-      const CX = { x: 0, v: 0 }, CY = { x: 0, v: 0 }, CW = { x: 12, v: 0 }, CH = { x: 12, v: 0 }, CA = { x: 1, v: 0 };
       s.raf((dt, t) => {
+        // 엘리베이터: 큐에 가장 가까운 층으로 한 층씩
+        if (performance.now() - lastUser > 4000) { autoT -= dt; if (autoT < 0) { autoT = U.rand(2, 4); const b = btnOf(U.pick(order)); if (b) press(b); } }
+        if (doorT > 0) doorT -= dt;
+        else if (queue.size) {
+          const targets = [...queue].map((f) => order.indexOf(f));
+          if (!dir) dir = Math.sign(targets.reduce((a, b) => (Math.abs(b - cur) < Math.abs(a - cur) ? b : a)) - cur) || 1;
+          if (!targets.some((i) => Math.sign(i - cur) === dir)) dir = -dir;
+          moveT += dt;
+          if (moveT > 0.85) {
+            moveT = 0; cur += dir;
+            if (queue.has(order[cur])) { queue.delete(order[cur]); btnOf(order[cur]).n.classList.remove('lit'); ding(); doorT = 1.6; if (!queue.size) dir = 0; }
+          }
+        }
+        num.textContent = order[cur];
+        up.classList.toggle('on', dir > 0 && (Math.sin(t * 8) > -0.3 || doorT > 0)); dn.classList.toggle('on', dir < 0 && (Math.sin(t * 8) > -0.3 || doorT > 0));
+        // 자석: 버튼은 거리의 0.35배, 숫자는 그보다 더 끌려온다
         const rr = root.getBoundingClientRect();
         const g = p.idle ? Lab.ghost(t * 0.9, rr.width, rr.height) : p;
-        // 가장 가까운 버튼에 커서가 달라붙어 하이라이트가 된다
-        let snap = null, sd = 1e9;
-        B.forEach((b) => {
-          const r = b.n.getBoundingClientRect();
-          const d = Math.hypot(g.x - (r.left - rr.left + r.width / 2), g.y - (r.top - rr.top + r.height / 2));
-          if (d < Math.max(r.width, r.height) * 0.9 && d < sd) { sd = d; snap = r; }
-        });
-        const pad = Math.min(rr.width, rr.height) * 0.025;
-        const tw = snap ? snap.width + pad * 2 : p.down ? 8 : 12, th = snap ? snap.height + pad * 2 : p.down ? 8 : 12;
-        const tx = snap ? snap.left - rr.left + snap.width / 2 : g.x, ty = snap ? snap.top - rr.top + snap.height / 2 : g.y;
-        U.spring(CX, tx, dt, snap ? 260 : 600, 26); U.spring(CY, ty, dt, snap ? 260 : 600, 26);
-        U.spring(CW, tw, dt, 260, 22); U.spring(CH, th, dt, 260, 22);
-        U.spring(CA, snap ? (p.down ? 0.28 : 0.14) : 1, dt, 200, 20);
-        cur.style.width = CW.x + 'px'; cur.style.height = CH.x + 'px';
-        cur.style.transform = `translate(${CX.x - CW.x / 2}px,${CY.x - CH.x / 2}px)`;
-        cur.style.opacity = CA.x;
         B.forEach((b) => {
           const r = b.n.getBoundingClientRect();
           const cx = r.left - rr.left + r.width / 2 - b.x.x, cy = r.top - rr.top + r.height / 2 - b.y.x;
-          const dx = g.x - cx, dy = g.y - cy, d = Math.hypot(dx, dy);
-          const R = Math.max(r.width, r.height) * 1.1;
-          const on = d < R;
-          // 버튼은 크기의 35%, 라벨은 버튼 안쪽 20%까지만 따라간다
-          const mx = r.width * 0.35, my = r.height * 0.35;
-          U.spring(b.x, on ? U.clamp(dx * 0.4, -mx, mx) : 0, dt, 170, 11); U.spring(b.y, on ? U.clamp(dy * 0.4, -my, my) : 0, dt, 170, 11);
-          U.spring(b.lx, on ? U.clamp(dx * 0.15, -r.width * 0.2, r.width * 0.2) : 0, dt, 120, 9); U.spring(b.ly, on ? U.clamp(dy * 0.15, -r.height * 0.2, r.height * 0.2) : 0, dt, 120, 9);
+          const dx = g.x - cx, dy = g.y - cy, d = Math.hypot(dx, dy), R = r.width * 1.1, on = d < R;
+          const mx = r.width * 0.22;
+          U.spring(b.x, on ? U.clamp(dx * 0.35, -mx, mx) : 0, dt, 200, 13); U.spring(b.y, on ? U.clamp(dy * 0.35, -mx, mx) : 0, dt, 200, 13);
+          U.spring(b.lx, on ? U.clamp(dx * 0.2, -mx * 0.6, mx * 0.6) : 0, dt, 140, 10); U.spring(b.ly, on ? U.clamp(dy * 0.2, -mx * 0.6, mx * 0.6) : 0, dt, 140, 10);
           b.n.style.transform = `translate(${b.x.x}px,${b.y.x}px)`;
           b.l.style.transform = `translate(${b.lx.x}px,${b.ly.x}px)`;
         });
@@ -162,58 +184,87 @@
      4. Confetti Button
      ======================================================= */
   Lab.register({
-    id: 'confetti', cat: 'ui', title: 'Confetti Burst',
-    tags: ['particles', 'flutter', 'click'],
+    id: 'confetti', cat: 'ui', title: 'Do Not Press', sound: true,
+    tags: ['particles', 'streamers', 'click'],
     css: `
-    .cf{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 60%,#2a1f4a,#120d22)}
-    .cf-btn{position:relative;z-index:2;border:0;cursor:pointer;padding:3.4cqmin 7cqmin;border-radius:10cqmin;font:700 4cqmin 'Space Grotesk',sans-serif;color:#fff;
-      background:linear-gradient(135deg,#ff5f8f,#ff9a3d);box-shadow:0 1.2cqmin 0 #b83a62,0 2cqmin 5cqmin #ff5f8f66;transition:transform .15s,box-shadow .15s}
-    .cf-btn:active{transform:translateY(1cqmin) scale(.96);box-shadow:0 .2cqmin 0 #b83a62,0 1cqmin 3cqmin #ff5f8f66}
-    .cf-btn.pop{animation:cf-pop .5s cubic-bezier(.3,1.8,.5,1)}
-    @keyframes cf-pop{0%{transform:scale(.9)}100%{transform:scale(1)}}
-    .cf canvas{z-index:3;pointer-events:none}
-    `,
+    .np{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqmin;overflow:hidden;
+      background:radial-gradient(ellipse at 50% 40%,#2d2a33,#141218 70%);font-family:'Pretendard Variable',Pretendard,sans-serif}
+    .np-plate{position:relative;width:44cqmin;height:44cqmin;border-radius:4cqmin;display:grid;place-items:center;
+      background:repeating-linear-gradient(-45deg,#f2c200 0 4cqmin,#16140f 4cqmin 8cqmin);box-shadow:inset 0 0 0 1.4cqmin #2a2722,0 3cqmin 6cqmin -1cqmin #000c}
+    .np-ring{position:absolute;width:30cqmin;height:30cqmin;border-radius:50%;background:radial-gradient(circle at 50% 35%,#5a5a60,#2a2a2e 70%);box-shadow:inset 0 .6cqmin 1cqmin #0009,0 .3cqmin 0 #77777d}
+    .np-btn{position:relative;width:23cqmin;height:23cqmin;border-radius:50%;border:0;cursor:pointer;padding:0;transform:translateY(-1.8cqmin);transition:transform .08s;
+      background:radial-gradient(circle at 42% 30%,#ff8a7a,#e01e23 45%,#8f0c12);box-shadow:0 1.8cqmin 0 #6e070c,0 2.4cqmin 2cqmin #0007,inset 0 -1cqmin 2cqmin #0004,inset 0 .8cqmin 1cqmin #fff5}
+    .np-btn.down{transform:translateY(-.2cqmin);box-shadow:0 .2cqmin 0 #6e070c,0 .6cqmin 1cqmin #0007,inset 0 -1cqmin 2cqmin #0004,inset 0 .8cqmin 1cqmin #fff5}
+    .np-btn::after{content:'';position:absolute;left:24%;top:14%;width:30%;height:18%;border-radius:50%;background:#ffffff70;filter:blur(.4cqmin);transform:rotate(-20deg)}
+    .np-label{min-height:6cqmin;text-align:center;color:#f2efe6;font-weight:700;font-size:max(14px,4cqmin);letter-spacing:-.02em}
+    .np-label small{display:block;margin-top:1cqmin;font:500 max(10px,1.8cqmin) 'IBM Plex Mono',monospace;color:#8d8a83;letter-spacing:.12em}
+    .np-label.shake{animation:np-sh .35s}
+    @keyframes np-sh{25%{transform:translateX(-1.4cqmin) rotate(-2deg)}50%{transform:translateX(1.2cqmin) rotate(1.5deg)}75%{transform:translateX(-.6cqmin)}}
+    .np canvas{z-index:3;pointer-events:none}`,
     mount(el, s) {
-      const root = s.html('<div class="cf"><button class="cf-btn">Celebrate</button></div>');
-      const btn = root.querySelector('.cf-btn');
+      const LINES = ['누르지 마세요', '누르지 말라니까요', '…또요?', '진짜 마지막이에요', '알겠어요. 마음껏 누르세요', '파티다'];
+      const root = s.html(`<div class="np"><div class="np-plate"><div class="np-ring"></div><button class="np-btn" aria-label="누르지 마세요"></button></div>
+        <div class="np-label">${LINES[0]}<small>DO NOT PRESS</small></div></div>`);
+      const btn = root.querySelector('.np-btn'), label = root.querySelector('.np-label');
       const c = s.canvas({ parent: root }); const { ctx } = c;
-      const cols = ['#ff5f8f', '#ffcf3f', '#6bffb8', '#3fb8ff', '#b36bff', '#ffffff', '#ff9a3d'];
-      const P = [];
-      const burst = (x, y, n, up) => {
-        const m = Math.min(c.w, c.h);
+      const cols = ['#ff5a5f', '#ffd23f', '#4ad9a4', '#4fb3ff', '#b47cff', '#ffffff', '#ff9a3d'];
+      const P = [], S = [];
+      let presses = 0;
+      const burst = (x, y, power) => {
+        const m = Math.min(c.w, c.h), n = Math.round((s.large ? 90 : 50) * power);
         for (let i = 0; i < n; i++) {
-          const a = up ? -Math.PI / 2 + U.rand(-0.9, 0.9) : U.rand(U.TAU);
-          const v = U.rand(0.6, 1.5) * m * 1.4;
+          const a = -Math.PI / 2 + U.rand(-1, 1) * (0.5 + power * 0.25), v = U.rand(0.6, 1.4) * m * (0.9 + power * 0.5);
           P.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: U.rand(U.TAU), vr: U.rand(-10, 10), tl: U.rand(U.TAU), vt: U.rand(5, 15),
-            w: m * U.rand(0.012, 0.022), h: m * U.rand(0.006, 0.012), c: U.pick(cols), life: U.rand(2.5, 4), age: 0, circ: Math.random() < 0.2 });
+            w: m * U.rand(0.012, 0.022), h: m * U.rand(0.006, 0.012), c: U.pick(cols), life: U.rand(2.5, 4), age: 0 });
+        }
+        // 꼬불꼬불한 테이프: 머리를 따라오는 점 열 개
+        for (let i = 0; i < Math.round(6 * power); i++) {
+          const a = -Math.PI / 2 + U.rand(-0.7, 0.7), v = U.rand(0.9, 1.5) * m * (0.8 + power * 0.4);
+          S.push({ pts: Array.from({ length: 14 }, () => ({ x, y })), vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: U.pick(cols), ph: U.rand(10), age: 0, life: U.rand(3, 4.5), w: m * 0.008 });
         }
       };
-      const fromBtn = () => {
+      const fire = () => {
+        presses++;
+        const lvl = Math.min(presses, LINES.length - 1);
+        label.innerHTML = `${LINES[lvl]}<small>${presses >= LINES.length - 1 ? 'PRESSED ' + presses + ' TIMES' : 'DO NOT PRESS'}</small>`;
+        label.classList.remove('shake'); void label.offsetWidth; if (lvl < 4) label.classList.add('shake');
         const rr = root.getBoundingClientRect(), b = btn.getBoundingClientRect();
-        burst(b.left - rr.left + b.width / 2, b.top - rr.top + b.height / 2, s.large ? 160 : 90, true);
-        btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+        const power = lvl < 1 ? 0.25 : lvl < 4 ? 0.5 + lvl * 0.15 : 1.4;
+        burst(b.left - rr.left + b.width / 2, b.top - rr.top + b.height * 0.3, power);
+        if (s.large) { Lab.burst({ dur: 0.25, freq: 700, q: 0.7, gain: 0.5 * power, curve: 2 }); if (lvl >= 4) [523, 659, 784, 1047].forEach((f, k) => Lab.tone(f, { type: 'triangle', dur: 0.4, gain: 0.08, at: 0.05 + k * 0.07 })); }
       };
-      s.on(btn, 'click', (e) => { e.stopPropagation(); fromBtn(); });
-      const p = s.pointer(root);
-      p.ondown = (e) => { if (e.target !== btn) burst(p.x, p.y, s.large ? 80 : 50, false); };
-      let auto = 1;
+      const down = () => { btn.classList.add('down'); if (s.large) Lab.burst({ dur: 0.03, freq: 1800, q: 5, gain: 0.3, curve: 6 }); };
+      const up = () => { if (!btn.classList.contains('down')) return; btn.classList.remove('down'); fire(); lastUser = performance.now(); };
+      s.on(btn, 'pointerdown', (e) => { e.stopPropagation(); down(); });
+      s.on(window, 'pointerup', up);
+      let lastUser = -1e9, auto = 1.2;
       s.raf((dt) => {
         const W = c.w, H = c.h;
-        if (p.idle) { auto -= dt; if (auto < 0) { auto = 3; fromBtn(); } }
+        if (performance.now() - lastUser > 3500) { auto -= dt; if (auto < 0.12 && !btn.classList.contains('down')) btn.classList.add('down'); if (auto < 0) { auto = 2.4; btn.classList.remove('down'); fire(); if (presses > 7) presses = 0; } }
         ctx.clearRect(0, 0, W, H);
+        const g = Math.min(H, 700) * 1.1;
+        for (let i = S.length - 1; i >= 0; i--) {
+          const q = S[i]; q.age += dt;
+          if (q.age > q.life) { S.splice(i, 1); continue; }
+          q.vx *= Math.exp(-1.6 * dt); q.vy = q.vy * Math.exp(-1.6 * dt) + g * 0.5 * dt;
+          const h = q.pts[0]; h.x += (q.vx + Math.sin(q.age * 9 + q.ph) * 60) * dt; h.y += q.vy * dt;
+          for (let k = 1; k < q.pts.length; k++) { const a = q.pts[k - 1], b = q.pts[k], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, L = c.h * 0.012; if (d > L) { b.x = a.x + (dx / d) * L; b.y = a.y + (dy / d) * L; } }
+          ctx.globalAlpha = Math.min(1, (q.life - q.age) * 2);
+          ctx.strokeStyle = q.c; ctx.lineWidth = q.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+          ctx.beginPath(); q.pts.forEach((pt, k) => (k ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y))); ctx.stroke();
+        }
         for (let i = P.length - 1; i >= 0; i--) {
           const q = P[i];
           q.age += dt;
           if (q.age > q.life || q.y > H + 40) { P.splice(i, 1); continue; }
-          q.vy += Math.min(H, 700) * dt * 1.1;
+          q.vy += g * dt;
           const drag = Math.exp(-2.4 * dt);
           q.vx *= drag; q.vy *= drag;
           q.vx += Math.sin(q.tl) * 30 * dt;
           q.x += q.vx * dt; q.y += q.vy * dt; q.r += q.vr * dt; q.tl += q.vt * dt;
           ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.r); ctx.scale(1, Math.cos(q.tl));
           ctx.globalAlpha = Math.min(1, (q.life - q.age) * 2);
-          ctx.fillStyle = q.c;
-          if (q.circ) { ctx.beginPath(); ctx.arc(0, 0, q.h, 0, U.TAU); ctx.fill(); } else ctx.fillRect(-q.w / 2, -q.h / 2, q.w, q.h);
+          ctx.fillStyle = q.c; ctx.fillRect(-q.w / 2, -q.h / 2, q.w, q.h);
           ctx.restore();
         }
         ctx.globalAlpha = 1;
@@ -225,53 +276,76 @@
      5. 3D Carousel
      ======================================================= */
   Lab.register({
-    id: 'carousel-3d', cat: 'ui', title: '3D Carousel',
+    id: 'carousel-3d', cat: 'ui', title: 'Record Shelf',
     tags: ['preserve-3d', 'inertia', 'drag'],
     css: `
-    .c3{position:absolute;inset:0;overflow:hidden;perspective:120cqmin;background:radial-gradient(ellipse at 50% 100%,#3b2a6b,#0d0a1a 65%);cursor:grab;touch-action:pan-y}
-    .c3:active{cursor:grabbing}
-    .c3-ring{position:absolute;left:50%;top:50%;transform-style:preserve-3d;will-change:transform}
-    .c3-card{position:absolute;width:24cqmin;height:34cqmin;left:-12cqmin;top:-17cqmin;border-radius:2.4cqmin;padding:2.4cqmin;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;
-      font-family:'Space Grotesk',sans-serif;box-shadow:inset 0 0 0 1px #ffffff30;backface-visibility:visible;transition:filter .3s}
-    .c3-card b{font-size:3.4cqmin;line-height:1}
-    .c3-card small{font:600 1.7cqmin 'JetBrains Mono',monospace;opacity:.75;margin-top:1cqmin;letter-spacing:.1em}
-    .c3-card span{position:absolute;top:2cqmin;left:2.4cqmin;font:700 2cqmin 'JetBrains Mono',monospace;opacity:.8}
-    .c3-floor{position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(#0000,#0008)}
+    .rs{position:absolute;inset:0;overflow:hidden;perspective:120cqmin;cursor:grab;touch-action:pan-y;
+      background:linear-gradient(#1c1714 0 62%,#2b211a 62%),radial-gradient(ellipse at 50% 30%,#3a2f27,#0000 70%);background-blend-mode:screen}
+    .rs:active{cursor:grabbing}
+    .rs::after{content:'';position:absolute;left:0;right:0;top:62%;height:2px;background:#4a3a2c}
+    .rs-ring{position:absolute;left:50%;top:46%;transform-style:preserve-3d;will-change:transform}
+    .rs-item{position:absolute;width:28cqmin;height:28cqmin;left:-14cqmin;top:-14cqmin;transform-style:preserve-3d}
+    .rs-disc{position:absolute;inset:3%;border-radius:50%;will-change:transform;
+      background:radial-gradient(circle,var(--lab) 0 15%,#111 15.5% 17%,#000 17.5%),repeating-radial-gradient(circle,#181818 0 .35cqmin,#0c0c0c .35cqmin .7cqmin);
+      background-blend-mode:normal;box-shadow:0 0 0 .2cqmin #000}
+    .rs-disc::after{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,#0000 0 10%,#ffffff22 14%,#0000 20% 55%,#ffffff18 60%,#0000 66%)}
+    .rs-cov{position:absolute;inset:0;overflow:hidden;border-radius:.4cqmin;box-shadow:0 1cqmin 2cqmin -1cqmin #000c,inset 0 0 0 1px #ffffff18;color:#fff;font-family:'Pretendard Variable',Pretendard,sans-serif}
+    .rs-cov::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,#ffffff1a,#0000 40%),repeating-linear-gradient(0deg,#0000 0 2px,#00000008 2px 3px)}
+    .rs-t{position:absolute;left:1.6cqmin;bottom:1.4cqmin;right:1.6cqmin;font:700 2.4cqmin/1.15 'Pretendard Variable',sans-serif;letter-spacing:-.02em}
+    .rs-a{display:block;font:500 1.4cqmin 'IBM Plex Mono',monospace;letter-spacing:.08em;opacity:.75;margin-top:.5cqmin}
+    .rs-now{position:absolute;left:0;right:0;bottom:5%;text-align:center;color:#d8cbb8;font:500 max(11px,2.1cqmin) 'IBM Plex Mono',monospace;letter-spacing:.1em}
+    .rs-now b{color:#fff;font-family:'Pretendard Variable',sans-serif;letter-spacing:-.01em;font-size:1.25em}
     `,
     mount(el, s) {
-      const N = 10;
-      const names = ['Aurora', 'Ember', 'Lagoon', 'Orchid', 'Citrus', 'Glacier', 'Dusk', 'Mint', 'Coral', 'Nova'];
-      const root = s.html(`<div class="c3"><div class="c3-ring">${names.map((n, i) => `<div class="c3-card" style="background:linear-gradient(160deg,hsl(${i * 36},90%,65%),hsl(${i * 36 + 40},80%,35%))"><span>0${i}</span><b>${n}</b><small>COLLECTION · ${2020 + i}</small></div>`).join('')}</div><div class="c3-floor"></div></div>`);
-      const ring = root.querySelector('.c3-ring');
-      const cards = [...ring.children];
+      const A = [
+        ['굴절률', 'THE REFRACTORS', '#e9e2d0', 'background:radial-gradient(circle at 50% 58%,#d8432b 0 22%,#0000 22.5%),linear-gradient(#e9e2d0 0 58%,#1d3b6b 58%)'],
+        ['Slow Orbit', 'NIGHT SHADER', '#7cffd4', 'background:repeating-radial-gradient(circle at 30% 70%,#0b1a33 0 2cqmin,#163d6b 2cqmin 2.6cqmin)'],
+        ['Soft Physics', 'VERLET & CO.', '#ffd23f', 'background:repeating-linear-gradient(90deg,#f2c200 0 3.5cqmin,#e8552a 3.5cqmin 7cqmin,#1d3b6b 7cqmin 10.5cqmin,#f4efe6 10.5cqmin 14cqmin)'],
+        ['92 BPM', 'KEY SHAPES', '#ff5a5f', 'background:#141414;--x:1'],
+        ['Halftone', 'CMY', '#ffd23f', 'background:radial-gradient(circle,#ff3d7f 38%,#0000 40%) 0 0/2.4cqmin 2.4cqmin,radial-gradient(circle,#00abc9 30%,#0000 32%) 1.2cqmin 1.2cqmin/2.4cqmin 2.4cqmin,#f7dc37'],
+        ['물 아래', 'KOI', '#f2a9bd', 'background:radial-gradient(ellipse at 30% 30%,#2f6b63,#0d2a2c 70%)'],
+        ['Afterglow', 'DISSOLVE', '#ffb547', 'background:linear-gradient(#2b1650,#e85a7a 55%,#ffcf6b 56%,#ff8a3d)'],
+        ['Grid Systems', 'SWISS', '#ff4a1c', 'background:linear-gradient(90deg,#0000 0 33%,#111 33% 34%,#0000 34% 66%,#111 66% 67%,#0000 67%),linear-gradient(#0000 0 49%,#111 49% 50%,#0000 50%),#f1ece0;color:#111'],
+        ['Nocturne', 'PLASMA', '#b47cff', 'background:conic-gradient(from 210deg at 70% 30%,#1a0b3d,#7a3cff,#ff7ab8,#1a0b3d)'],
+        ['Static', 'GLITCH', '#ffffff', 'background:repeating-linear-gradient(0deg,#f2efe6 0 .5cqmin,#111 .5cqmin 1.6cqmin);color:#ff3d3d'],
+      ];
+      const N = A.length;
+      const big = (i) => (A[i][3].includes('--x') ? '<b style="position:absolute;left:1.6cqmin;top:1cqmin;font:900 13cqmin/0.85 Pretendard Variable,sans-serif;color:#ff5a5f;letter-spacing:-.06em">92</b>' : '');
+      const root = s.html(`<div class="rs"><div class="rs-ring">${A.map(([t, a, lab, bg], i) => `<div class="rs-item"><div class="rs-disc" style="--lab:${lab}"></div><div class="rs-cov" style="${bg}">${big(i)}<div class="rs-t">${t}<span class="rs-a">${a}</span></div></div></div>`).join('')}</div><div class="rs-now"></div></div>`);
+      const ring = root.querySelector('.rs-ring'), now = root.querySelector('.rs-now');
+      const items = [...ring.children].map((n) => ({ n, disc: n.querySelector('.rs-disc'), out: { x: 0, v: 0 }, spin: Math.random() * 360 }));
       const step = 360 / N;
-      let ang = 0, vel = 0, drag = false, lx = 0, last = performance.now();
-      const TX = { x: 0, v: 0 };
+      let ang = 0, vel = 0, drag = false, lx = 0, last = -1e9, shown = -1;
       s.on(root, 'pointerdown', (e) => { drag = true; lx = e.clientX; vel = 0; last = performance.now(); try { root.setPointerCapture(e.pointerId); } catch (_) {} });
       s.on(root, 'pointermove', (e) => { if (!drag) return; const d = e.clientX - lx; lx = e.clientX; ang += d * 0.25; vel = d * 0.25 * 60; last = performance.now(); });
       const up = () => (drag = false);
       s.on(root, 'pointerup', up); s.on(root, 'pointercancel', up);
+      const TX = { x: 0, v: 0 };
       const p = s.pointer(root);
+      let idleStep = 0;
       s.raf((dt, t) => {
-        const H = root.clientHeight;
-        const Rz = H * 0.42;
+        const H = root.clientHeight, Rz = H * 0.5;
+        const idle = performance.now() - last > 3000;
         if (!drag) {
-          const idle = performance.now() - last > 3000;
-          if (idle) vel += (-14 - vel) * U.damp(1, dt);
-          else {
-            vel *= Math.exp(-2.5 * dt);
-            if (Math.abs(vel) < 25) { const snap = Math.round(ang / step) * step; vel += (snap - ang) * 30 * dt; vel *= Math.exp(-6 * dt); }
-          }
+          if (idle) { idleStep += dt; if (idleStep > 2.6) { idleStep = 0; vel = -step * 4.5; } }
+          vel *= Math.exp(-2.5 * dt);
+          if (Math.abs(vel) < 25) { const snap = Math.round(ang / step) * step; vel += (snap - ang) * 30 * dt; vel *= Math.exp(-6 * dt); }
           ang += vel * dt;
         }
-        U.spring(TX, p.idle ? Math.sin(t * 0.5) * 6 : (p.ny - 0.5) * -24, dt, 60, 12);
+        U.spring(TX, p.idle ? -8 : (p.ny - 0.5) * -20 - 6, dt, 60, 12);
         ring.style.transform = `translateZ(${-Rz}px) rotateX(${TX.x}deg) rotateY(${ang}deg)`;
-        cards.forEach((cd, i) => {
-          const a = ((i * step + ang) % 360 + 360) % 360;
-          const front = Math.cos((a * Math.PI) / 180);
-          cd.style.transform = `rotateY(${i * step}deg) translateZ(${Rz}px) scale(${1 + Math.max(0, front - 0.9) * 1.2})`;
-          cd.style.filter = `brightness(${0.45 + 0.55 * Math.max(0, front)})`;
+        let frontI = 0, fm = -2;
+        items.forEach((it, i) => {
+          const a = ((i * step + ang) % 360 + 360) % 360, front = Math.cos((a * Math.PI) / 180);
+          if (front > fm) { fm = front; frontI = i; }
+          const settled = Math.abs(vel) < 20 && !drag;
+          U.spring(it.out, front > 0.97 && settled ? 1 : 0, dt, 90, 14);
+          it.spin += dt * 200 * it.out.x;
+          it.n.style.transform = `rotateY(${i * step}deg) translateZ(${Rz}px) translateY(${-it.out.x * 6}%)`;
+          it.disc.style.transform = `translateX(${it.out.x * 46}%) translateZ(-1px) rotate(${it.spin}deg)`;
+          it.n.style.filter = `brightness(${0.35 + 0.65 * Math.max(0, front)})`;
         });
+        if (frontI !== shown) { shown = frontI; now.innerHTML = `NOW PLAYING · <b>${A[frontI][0]}</b> — ${A[frontI][1]}`; }
       });
     },
   });
@@ -426,43 +500,87 @@
      9. Glow Border Cards
      ======================================================= */
   Lab.register({
-    id: 'glow-cards', cat: 'ui', title: 'Spotlight Cards',
-    tags: ['radial-gradient', 'mask', 'mouse'],
+    id: 'glow-cards', cat: 'ui', title: 'Periodic Table of Motion',
+    tags: ['radial-gradient', 'mask', 'hover'],
     css: `
-    .gc{position:absolute;inset:0;display:grid;place-items:center;background:#08080c}
-    .gc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2cqmin;width:min(92cqw,140cqh)}
-    .gc-c{--x:-999px;--y:-999px;position:relative;border-radius:2.4cqmin;padding:3cqmin;background:#ffffff08;min-height:26cqmin;color:#fff;font-family:'Space Grotesk',sans-serif;overflow:hidden}
-    .gc-c::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;background:radial-gradient(28cqmin circle at var(--x) var(--y),#ffffffcc,#ffffff14 60%);
-      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
-    .gc-c::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(34cqmin circle at var(--x) var(--y),#7a5cff40,#0000 60%);pointer-events:none}
-    .gc-i{width:6cqmin;height:6cqmin;border-radius:1.6cqmin;display:grid;place-items:center;font-size:3.2cqmin;background:#ffffff10;margin-bottom:2.4cqmin}
-    .gc-i svg{width:55%;height:55%;color:#d9d4ff}
-    .gc-c b{display:block;font-size:2.9cqmin;margin-bottom:.8cqmin}
-    .gc-c p{margin:0;font-size:2cqmin;line-height:1.45;color:#ffffff80}
+    .pt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4cqmin;background:#0c0c0f;color:#ece9e2;font-family:'Pretendard Variable',Pretendard,sans-serif}
+    .pt-head{width:min(94cqw,150cqh);display:flex;justify-content:space-between;align-items:baseline;font:600 max(9px,1.9cqmin) 'IBM Plex Mono',monospace;letter-spacing:.12em;color:#8d8a83}
+    .pt-head b{font:800 max(12px,3.4cqmin) 'Pretendard Variable',sans-serif;letter-spacing:-.02em;color:#ece9e2}
+    .pt-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1.1cqmin;width:min(94cqw,150cqh)}
+    .pt-c{--x:-999px;--y:-999px;--k:#fff;position:relative;aspect-ratio:1;border-radius:1.2cqmin;padding:1.2cqmin 1.4cqmin;background:#ffffff07;overflow:hidden;cursor:default;transition:background .3s,transform .4s cubic-bezier(.3,1.5,.5,1)}
+    .pt-c::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+      background:radial-gradient(22cqmin circle at var(--x) var(--y),var(--k),#ffffff12 60%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+    .pt-c::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(26cqmin circle at var(--x) var(--y),color-mix(in srgb,var(--k) 18%,transparent),#0000 60%)}
+    .pt-c.on{background:#ffffff10;transform:translateY(-.5cqmin)}
+    .pt-n{font:500 max(8px,1.5cqmin) 'IBM Plex Mono',monospace;color:#8d8a83}
+    .pt-s{position:absolute;left:1.4cqmin;bottom:3.6cqmin;font:800 max(14px,4.4cqmin)/1 'Pretendard Variable',sans-serif;letter-spacing:-.03em;color:var(--k);transition:opacity .25s}
+    .pt-name{position:absolute;left:1.4cqmin;bottom:1.3cqmin;font:500 max(8px,1.45cqmin) 'IBM Plex Mono',monospace;color:#b9b5ac;white-space:nowrap}
+    .pt-c.on .pt-s{opacity:.15}
+    .pt-v{position:absolute;inset:18% 12% 30%;display:grid;place-items:center;opacity:0;transition:opacity .25s}
+    .pt-c.on .pt-v{opacity:1}
+    .pt-v i{display:block;width:2.2cqmin;height:2.2cqmin;border-radius:50%;background:var(--k)}
+    .pt-c.on .pt-v i{animation:var(--anim) infinite}
+    .pt-legend{display:flex;gap:2.6cqmin;font:500 max(8px,1.6cqmin) 'IBM Plex Mono',monospace;color:#8d8a83}
+    .pt-legend span::before{content:'';display:inline-block;width:1cqmin;height:1cqmin;border-radius:50%;margin-right:.8cqmin;background:var(--k)}
+    @keyframes pt-ease{0%,10%{transform:translateX(-4cqmin)}50%,60%{transform:translateX(4cqmin)}100%{transform:translateX(-4cqmin)}}
+    @keyframes pt-spring{0%{transform:translateX(-4cqmin)}20%{transform:translateX(5cqmin)}30%{transform:translateX(3cqmin)}38%{transform:translateX(4.4cqmin)}45%,70%{transform:translateX(4cqmin)}100%{transform:translateX(-4cqmin)}}
+    @keyframes pt-bounce{0%,100%{transform:translateY(-4cqmin);animation-timing-function:ease-in}40%{transform:translateY(3cqmin);animation-timing-function:ease-out}55%{transform:translateY(0)}70%{transform:translateY(3cqmin)}80%{transform:translateY(2cqmin)}88%{transform:translateY(3cqmin)}}
+    @keyframes pt-stagger{0%,100%{transform:translateY(0)}30%{transform:translateY(-2.5cqmin)}60%{transform:translateY(0)}}
+    @keyframes pt-fade{0%,100%{opacity:1}50%{opacity:.08}}
+    @keyframes pt-scale{0%,100%{transform:scale(.5)}50%{transform:scale(2.4)}}
+    @keyframes pt-rotate{to{transform:rotate(1turn)}}
+    @keyframes pt-skew{0%,100%{transform:skewX(0) scaleX(2.4)}50%{transform:skewX(-35deg) scaleX(2.4)}}
+    @keyframes pt-flip{to{transform:rotateY(1turn)}}
+    @keyframes pt-shake{0%,100%{transform:translateX(0)}10%,30%,50%{transform:translateX(-1.4cqmin)}20%,40%,60%{transform:translateX(1.4cqmin)}70%{transform:translateX(0)}}
+    @keyframes pt-blur{0%,100%{filter:blur(0)}50%{filter:blur(.9cqmin)}}
+    @keyframes pt-pulse{0%{box-shadow:0 0 0 0 var(--k)}100%{box-shadow:0 0 0 3cqmin #0000}}
+    @keyframes pt-orbit{from{transform:rotate(0) translateX(3cqmin) rotate(0)}to{transform:rotate(1turn) translateX(3cqmin) rotate(-1turn)}}
+    @keyframes pt-morph{0%,100%{border-radius:50%;transform:scale(1.6)}50%{border-radius:15%;transform:scale(1.6) rotate(45deg)}}
+    @keyframes pt-draw{0%{width:0}60%,100%{width:8cqmin}}
+    @keyframes pt-wave{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1.8)}}
+    @keyframes pt-para{0%,100%{transform:translateX(-3cqmin)}50%{transform:translateX(3cqmin)}}
+    @keyframes pt-linear{from{transform:translateX(-4cqmin)}to{transform:translateX(4cqmin)}}
     `,
     mount(el, s) {
-      const items = [
-        ['<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', 'Instant', 'Edge-rendered in milliseconds.'],
-        ['<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', 'Secure', 'Encrypted from end to end.'],
-        ['<circle cx="8" cy="8" r="4"/><circle cx="16" cy="8" r="4"/><circle cx="12" cy="15" r="4"/>', 'Themeable', 'Tokens all the way down.'],
-        ['<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', 'Analytics', 'See what users actually do.'],
-        ['<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="4"/>', 'Composable', 'Small parts, big systems.'],
-        ['<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>', 'Global', 'Deployed to 30+ regions.'],
+      const K = { t: '#ffb547', f: '#6bc6ff', p: '#ff7ab8', m: '#7cffd4' };
+      // [번호, 기호, 이름, 분류, 애니메이션, 특수]
+      const EL = [
+        [1, 'Ea', 'ease-in-out', 't', 'pt-ease 1.6s cubic-bezier(.65,0,.35,1)'], [2, 'Li', 'linear', 't', 'pt-linear 1.2s linear alternate'],
+        [3, 'Sp', 'spring', 't', 'pt-spring 1.8s linear'], [4, 'Bo', 'bounce', 't', 'pt-bounce 1.4s'], [5, 'St', 'stagger', 't', 'pt-stagger .9s ease-in-out', 'trio'],
+        [6, 'De', 'delay', 't', 'pt-ease 1.6s cubic-bezier(.65,0,.35,1) .6s'],
+        [7, 'Sc', 'scale', 'f', 'pt-scale 1.4s ease-in-out'], [8, 'Ro', 'rotate', 'f', 'pt-rotate 1.4s linear', 'bar'], [9, 'Sk', 'skew', 'f', 'pt-skew 1.4s ease-in-out', 'sq'],
+        [10, 'Fl', 'flip', 'f', 'pt-flip 1.5s ease-in-out', 'sq'], [11, 'Sh', 'shake', 'f', 'pt-shake .9s'], [12, 'Pa', 'parallax', 'f', 'pt-para 2s ease-in-out', 'layers'],
+        [13, 'Fa', 'fade', 'p', 'pt-fade 1.4s ease-in-out'], [14, 'Bl', 'blur', 'p', 'pt-blur 1.4s ease-in-out', 'sq'], [15, 'Pu', 'pulse', 'p', 'pt-pulse 1.1s ease-out'],
+        [16, 'Dr', 'draw', 'p', 'pt-draw 1.6s cubic-bezier(.65,0,.35,1)', 'line'], [17, 'Or', 'orbit', 'm', 'pt-orbit 1.6s linear'], [18, 'Mo', 'morph', 'm', 'pt-morph 1.8s ease-in-out', 'sq'],
       ];
-      const icon = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-      const root = s.html(`<div class="gc"><div class="gc-grid">${items.map(([i, b, t]) => `<div class="gc-c"><div class="gc-i">${icon(i)}</div><b>${b}</b><p>${t}</p></div>`).join('')}</div></div>`);
-      const cards = [...root.querySelectorAll('.gc-c')];
+      const vis = (sp) => {
+        if (sp === 'trio') return '<div style="display:flex;gap:1cqmin">' + [0, 1, 2].map((k) => `<i style="animation-delay:${k * 0.12}s"></i>`).join('') + '</div>';
+        if (sp === 'bar') return '<i style="width:6cqmin;height:1cqmin;border-radius:.5cqmin"></i>';
+        if (sp === 'sq') return '<i style="border-radius:.4cqmin;width:3cqmin;height:3cqmin"></i>';
+        if (sp === 'line') return '<i style="height:.5cqmin;width:0;border-radius:.3cqmin;justify-self:start"></i>';
+        if (sp === 'layers') return '<div style="position:relative;width:100%;height:100%"><i style="position:absolute;left:30%;top:25%;opacity:.35;animation-duration:3s"></i><i style="position:absolute;left:50%;top:45%"></i></div>';
+        return '<i></i>';
+      };
+      const root = s.html(`<div class="pt"><div class="pt-head"><b>Periodic Table of Motion</b><span>18 ELEMENTS · HOVER TO REACT</span></div>
+        <div class="pt-grid">${EL.map(([n, sym, name, cat, anim, sp]) => `<div class="pt-c" style="--k:${K[cat]};--anim:${anim}"><span class="pt-n">${String(n).padStart(2, '0')}</span><b class="pt-s">${sym}</b><span class="pt-name">${name}</span><div class="pt-v">${vis(sp)}</div></div>`).join('')}</div>
+        <div class="pt-legend"><span style="--k:${K.t}">timing</span><span style="--k:${K.f}">transform</span><span style="--k:${K.p}">paint</span><span style="--k:${K.m}">path</span></div></div>`);
+      const cards = [...root.querySelectorAll('.pt-c')];
       const p = s.pointer(root);
-      const X = { x: 0, v: 0 }, Y = { x: 0, v: 0 };
+      const X = { x: 0 }, Y = { x: 0 };
+      let onIdx = -1;
       s.raf((dt, t) => {
         const rr = root.getBoundingClientRect();
-        const g = p.idle ? Lab.ghost(t * 0.9, rr.width, rr.height) : p;
+        const g = p.idle ? Lab.ghost(t * 0.7, rr.width, rr.height) : p;
         X.x += (g.x - X.x) * U.damp(12, dt); Y.x += (g.y - Y.x) * U.damp(12, dt);
-        cards.forEach((c) => {
-          const r = c.getBoundingClientRect();
-          c.style.setProperty('--x', X.x - (r.left - rr.left) + 'px');
-          c.style.setProperty('--y', Y.x - (r.top - rr.top) + 'px');
+        let best = -1, bd = 1e9;
+        cards.forEach((c2, i) => {
+          const r = c2.getBoundingClientRect();
+          const lx = X.x - (r.left - rr.left), ly = Y.x - (r.top - rr.top);
+          c2.style.setProperty('--x', lx + 'px'); c2.style.setProperty('--y', ly + 'px');
+          if (lx >= 0 && ly >= 0 && lx <= r.width && ly <= r.height) { best = i; bd = 0; }
         });
+        if (best !== onIdx) { if (onIdx >= 0) cards[onIdx].classList.remove('on'); if (best >= 0) cards[best].classList.add('on'); onIdx = best; }
       });
     },
   });

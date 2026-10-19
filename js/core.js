@@ -385,6 +385,13 @@
       fn(a, a.currentTime);
     } catch (_) {}
   };
+  /** 짧은 음 하나. type: sine | triangle | square | sawtooth */
+  Lab.tone = (freq, { type = 'sine', dur = 0.4, gain = 0.2, at = 0 } = {}) => Lab.sfx((a, t0) => {
+    const t = t0 + at, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+  });
   /** 노이즈를 대역 필터에 통과시킨 타격음 (유리, 폭죽, 뽁뽁이 등) */
   Lab.burst = ({ dur = 0.2, freq = 1500, q = 1, gain = 0.5, at = 0, curve = 4 } = {}) => Lab.sfx((a, t) => {
     const buf = a.createBuffer(1, Math.max(1, Math.floor(a.sampleRate * dur)), a.sampleRate), d = buf.getChannelData(0);

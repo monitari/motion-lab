@@ -400,27 +400,82 @@
   const shader = (o) => Lab.register({ cat: 'shader', ...o, source: o.frag, mount(el, s) { s.shader(o.frag); } });
 
   shader({
-    id: 'lava-lamp', title: 'Lava Lamp', tags: ['2D metaballs', 'field', 'GLSL'],
+    id: 'lava-lamp', title: 'Lava Lamp', tags: ['2D metaballs', 'SDF', 'GLSL'],
     frag: `
-    void main(){
-      vec2 p=gl_FragCoord.xy/iRes.y;
-      float asp=iRes.x/iRes.y;
-      vec2 m=iMouse/iRes.y;
-      float f=0.;
-      for(int i=0;i<10;i++){
+    // 램프 좌표: 화면 높이를 -1..1, 가운데가 0
+    float halfW(float y){ return mix(.25,.13,smoothstep(-.52,.52,y)); }        // 유리: 아래가 넓고 위로 좁아짐
+    float glassD(vec2 p){ float w=halfW(p.y); return max(abs(p.x)-w, abs(p.y)-.52); }
+    float capD(vec2 p){ float k=clamp((p.y-.52)/.2,0.,1.); float w=mix(.135,.075,k); return max(abs(p.x)-w, max(.52-p.y, p.y-.72)); }
+    float baseD(vec2 p){ float k=clamp((-.52-p.y)/.36,0.,1.); float w=mix(.255,.33,smoothstep(0.,.55,k))-smoothstep(.55,1.,k)*.06; return max(abs(p.x)-w, max(p.y+.52, -.88-p.y)); }
+    float heat;
+    float field(vec2 p){
+      float t=iTime*(.35+heat*.6), f=0.;
+      for(int i=0;i<7;i++){
         float fi=float(i);
-        vec2 c=vec2(asp*(.5+.36*sin(fi*2.1+iTime*(.11+fi*.013))),.5+.46*sin(iTime*(.07+fi*.019)+fi*1.3));
-        float r=.07+.035*fract(fi*.37);
-        f+=r*r/dot(p-c,p-c);
+        float ph=fract(t*(.05+fi*.011)+fi*.37);
+        float y=-.46+.92*(.5-.5*cos(ph*6.2831));
+        vec2 c=vec2(sin(t*.5+fi*2.1)*.07*(1.-abs(y)), y);
+        float r=.045+.02*fract(fi*.61);
+        vec2 d=p-c; d.y*=1.15;
+        f+=r*r/dot(d,d);
       }
-      f+=(.006+iDown*.02)/dot(p-m,p-m);
-      vec3 bg=mix(vec3(.18,.02,.22),vec3(.55,.06,.25),p.y);
-      vec3 hot=mix(vec3(1.,.35,.1),vec3(1.,.85,.35),smoothstep(1.,3.,f));
-      float edge=smoothstep(.9,1.08,f);
-      vec3 col=mix(bg,hot,edge);
-      col+=vec3(1.,.4,.2)*smoothstep(.45,1.,f)*(1.-edge)*.35;
-      col*=1.-.35*pow(abs(p.x/asp-.5)*2.,3.);
-      gl_FragColor=vec4(col,1.);
+      vec2 d=p-vec2(0.,-.56); d.y*=2.4;                                     // 바닥에 고인 왁스
+      f+=.032/dot(d,d);
+      return f;
+    }
+    void main(){
+      vec2 uv=gl_FragCoord.xy/iRes;
+      vec2 p=(gl_FragCoord.xy-vec2(.5*iRes.x,.47*iRes.y))/(.5*iRes.y);
+      vec2 m=(iMouse-vec2(.5*iRes.x,.47*iRes.y))/(.5*iRes.y);
+      float px=2./iRes.y;
+      heat=iDown;
+      // 벽: 따뜻한 회색 + 램프 빛
+      vec3 col=mix(vec3(.10,.07,.09),vec3(.16,.11,.12),uv.y);
+      float glow=exp(-length((p-vec2(0.,-.05))*vec2(1.,.75))*2.3);
+      col+=vec3(1.,.35,.15)*glow*.55;
+      // 탁자
+      float table=smoothstep(-.88+px,-.88-px,p.y);
+      vec3 wood=mix(vec3(.18,.10,.07),vec3(.12,.07,.05),fract(p.x*3.+sin(p.y*40.)*.05));
+      wood+=vec3(1.,.4,.15)*exp(-abs(p.x)*4.)*exp(-(-.88-p.y)*5.)*.5;   // 탁자에 비친 빛
+      col=mix(col,wood,table);
+      // 그림자
+      col*=1.-.35*exp(-pow(abs(p.x)*3.,2.))*smoothstep(-.85,-.95,p.y)*table;
+      // 유리 안
+      float gd=glassD(p);
+      if(gd<px){
+        float f=field(p);
+        // 마우스가 유리 안에 있으면 왁스 덩어리가 하나 더 붙는다
+        vec2 dm=p-m; float mf=.004/max(dot(dm,dm),1e-4)*step(glassD(m),0.);
+        f+=mf;
+        float e=1e-3;
+        float fx=field(p+vec2(e,0.))-field(p-vec2(e,0.)), fy=field(p+vec2(0.,e))-field(p-vec2(0.,e));
+        vec3 n=normalize(vec3(-fx,-fy,.06));
+        float w=halfW(p.y), xr=p.x/w;                                       // 유리 안 가로 위치 -1..1
+        vec3 liquid=mix(vec3(.45,.03,.20),vec3(.85,.12,.30),exp(-(p.y+.5)*1.6))*(.65+.35*(1.-xr*xr));
+        float wax=smoothstep(.95,1.12,f);
+        vec3 waxc=mix(vec3(1.,.55,.10),vec3(1.,.85,.35),smoothstep(1.,3.,f));
+        waxc*=.55+.6*max(0.,dot(n,normalize(vec3(.3,-.6,.75))))+.3*exp(-(p.y+.5)*2.);
+        vec3 inside=mix(liquid,waxc,wax);
+        inside+=vec3(1.,.5,.2)*smoothstep(.55,1.,f)*(1.-wax)*.25;            // 왁스 주변 번짐
+        // 유리 하이라이트와 가장자리
+        inside+=vec3(1.,.9,.95)*smoothstep(.12,0.,abs(xr+.62))*.35;
+        inside+=vec3(1.)*smoothstep(.06,0.,abs(xr-.75))*.12;
+        inside*=1.-.45*pow(abs(xr),4.);
+        col=mix(col,inside,smoothstep(px,-px,gd));
+      }
+      // 금속 뚜껑과 받침: 원통 음영 + 가로 띠 반사
+      float cd=capD(p), bd=baseD(p);
+      if(min(cd,bd)<px){
+        float w=cd<bd?mix(.135,.075,clamp((p.y-.52)/.2,0.,1.)):.3;
+        float xr=clamp(p.x/w,-1.,1.);
+        vec3 metal=mix(vec3(.14,.13,.15),vec3(.75,.72,.78),pow(1.-abs(xr+.35),3.))+vec3(.9)*smoothstep(.06,0.,abs(xr+.4))*.5;
+        metal+=vec3(1.,.4,.18)*.25*(cd<bd?smoothstep(.6,.52,p.y):smoothstep(-.6,-.52,p.y));  // 유리 쪽 가장자리에 붉은 빛
+        metal*=.85+.15*sin(p.y*140.);
+        col=mix(col,metal,smoothstep(px,-px,min(cd,bd)));
+      }
+      // 화면 가장자리 어둡게
+      col*=1.-.35*pow(length(uv-.5)*1.3,2.);
+      gl_FragColor=vec4(pow(col,vec3(.95)),1.);
     }`,
   });
 
@@ -547,12 +602,18 @@
     .so-t::after{content:'';position:absolute;left:0;top:52%;height:.25cqmin;width:0;background:#8a867d;transition:width .35s}
     .so-it.done .so-t{color:#8a867d}.so-it.done .so-t::after{width:100%}
     .so-tag{font:500 2cqmin 'IBM Plex Mono',monospace;padding:.5cqmin 1.2cqmin;border-radius:1cqmin}
+    .so-rank{width:3.4cqmin;text-align:center;font:800 3cqmin 'Pretendard Variable',sans-serif;color:#b9b5ab;transition:color .3s}
+    .so-rank.top{color:#e0a100}
+    .so-kind{margin-left:1.4cqmin;font:500 1.8cqmin 'IBM Plex Mono',monospace;color:#9a958c}
+    .so-chili{display:flex;gap:.5cqmin;font-style:normal}.so-chili b{width:1.2cqmin;height:2cqmin;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#e8e4dc}.so-chili b.on{background:#e8452e}
     `,
     mount(el, s) {
-      const items = [['디자인 리뷰', 'design', '#ffe1d6', '#c2410c'], ['홀로 카드 셰이더 정리', 'dev', '#dbeafe', '#1d4ed8'], ['README 스크린샷', 'docs', '#e7f5d9', '#3f6212'],
-        ['모바일 터치 확인', 'qa', '#f3e8ff', '#7e22ce'], ['배포', 'ops', '#fef3c7', '#a16207'], ['회고 쓰기', 'misc', '#f1f0ec', '#57534e']];
-      const root = s.html(`<div class="so"><div class="so-box"><div class="so-h">This week<small>drag to reorder</small></div><div class="so-list">${items.map(([t, tag, bg, fg]) =>
-        `<div class="so-it"><span class="so-grip"></span><span class="so-ck"></span><span class="so-t">${t}</span><span class="so-tag" style="background:${bg};color:${fg}">${tag}</span></div>`).join('')}</div></div></div>`);
+      // [이름, 맵기 0~5, 국물/비빔]
+      const items = [['짜파게티', 0, '비빔'], ['신라면', 3, '국물'], ['너구리', 2, '국물'], ['불닭볶음면', 5, '비빔'], ['안성탕면', 1, '국물'], ['진라면 매운맛', 3, '국물']];
+      const chili = (n) => '<i class="so-chili">' + Array.from({ length: 5 }, (_, k) => `<b class="${k < n ? 'on' : ''}"></b>`).join('') + '</i>';
+      const root = s.html(`<div class="so"><div class="so-box"><div class="so-h">내 라면 순위<small>끌어서 순위 바꾸기 · 원을 눌러 먹어 봤음 표시</small></div><div class="so-list">${items.map(([t, hot, kind]) =>
+        `<div class="so-it"><span class="so-grip"></span><b class="so-rank">0</b><span class="so-ck"></span><span class="so-t">${t}<small class="so-kind">${kind}</small></span>${chili(hot)}</div>`).join('')}</div></div></div>`);
+      const ranks = [...root.querySelectorAll('.so-rank')];
       const list = root.querySelector('.so-list');
       const els = [...list.children];
       let order = els.map((_, i) => i);
@@ -600,6 +661,7 @@
           } else { U.spring(q.y, target, dt, 260, 22); U.spring(q.r, 0, dt, 200, 16); }
           U.spring(q.s, drag === i ? 1.04 : 1, dt, 300, 20);
           e.style.transform = `translateY(${q.y.x}px) scale(${q.s.x}) rotate(${q.r.x}deg)`;
+          const rk = order.indexOf(i) + 1; if (ranks[i].textContent !== String(rk)) { ranks[i].textContent = rk; ranks[i].classList.toggle('top', rk === 1); }
         });
       });
     },
